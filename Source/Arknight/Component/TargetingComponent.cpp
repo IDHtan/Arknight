@@ -73,7 +73,7 @@ TArray<TScriptInterface<ITargetableInterface>> UTargetingComponent::PerformGridS
 float UTargetingComponent::CalculateTargetScore_Implementation(const TScriptInterface<ITargetableInterface>& Target)
 {
 	FIntVector2 Pos1 = ITargetableInterface::Execute_GetGridPosition(Target.GetObject());
-	FIntVector2 Pos2 = Cast<AOperatorBase>(GetOwner())->CurrentGridLocation;
+	FIntVector2 Pos2 = Cast<AOperatorBase>(GetOwner())->GridLocation;
 
 	float Distance = FVector2D::Distance(FVector2D(Pos1.X, Pos1.Y), FVector2D(Pos2.X, Pos2.Y));
 

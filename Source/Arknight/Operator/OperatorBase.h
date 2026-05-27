@@ -9,6 +9,8 @@
 #include "../DS.h"
 #include "OperatorBase.generated.h"
 
+class ABulletBase;
+
 UCLASS()
 class ARKNIGHT_API AOperatorBase : public AActor
 {
@@ -18,8 +20,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UStaticMeshComponent* SpriteComponent;
 
+	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSoftObjectPtr<UTexture2D> OperatorAvatar;*/
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UTexture2D> OperatorAvatar;
+	TSubclassOf<ABulletBase> BulletClass;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UTargetingComponent* TargetingComp;
@@ -28,34 +33,44 @@ public:
 	UHealthComponent* HealthComp;*/
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "State")
-	EDeploymentDirection CurrentFacingDirection;
+	EDeploymentDirection FacingDirection;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "State")
-	FIntVector2 CurrentGridLocation;
+	FIntVector2 GridLocation;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "State")
-	TArray<TScriptInterface<ITargetableInterface>> CurrentTarget;
+	TArray<TScriptInterface<ITargetableInterface>> Target;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Deployment")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	int32 DeploymentCost;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Deployment")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EOperatorDeployType DeployType;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	EOperatorAttackType AttackType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EOperatorClassType OperatorClassType;
+
 public:
-	/*UFUNCTION(BlueprintCallable, Category = "Deployment")
+	UFUNCTION(BlueprintCallable, Category = "Deployment")
 	void OnDeployed(FIntVector2 Location, EDeploymentDirection Direction, int32 InitialLevel);
+
+	UFUNCTION(BlueprintCallable, Category = "Deployment")
+	void OnRetreat();
 	
+	FTimerHandle TargetingTimerHandle;
+
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void OnTargetingTimerTick();
 
+	FTimerHandle AttackingTimerHandle;
+
 	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void ExecuteAttack();*/
+	void ExecuteAttack();
 
 public:	
 	AOperatorBase();
-
 
 };

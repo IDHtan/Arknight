@@ -37,6 +37,13 @@ enum class EOperatorDeployType : uint8
 };
 
 UENUM(BlueprintType)
+enum class EOperatorAttackType :uint8
+{
+	Melee UMETA(DisplayName = "Near"),
+	Ranged UMETA(DisplayName = "Far")
+};
+
+UENUM(BlueprintType)
 enum class EOperatorClassType : uint8
 {
 	Vanguard UMETA(DisplayName = "Vanguard"),
