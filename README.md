@@ -1,3 +1,20 @@
 # Arknight
 
-Developed with Unreal Engine 5
+## 项目开发规范
+- 命名使用驼峰命名法，所有资产都用英语命名。
+- 资产命名时加上其类型的前缀，如：
+  - BP_ (Blueprint) 
+  - SM_ (Static Mesh)
+  - M_ (Material) 
+  - Lvl_ (Level)
+- **严禁在资源管理器里直接移动或操纵文件**，这会影响项目的引用关系。也不要随意修改.gitignore，除非你知道你在做什么。
+
+## 版本控制规范
+- 每次开始工作前进行一次同步。
+- 提交更改时，描述中第一个单词代表本次更改的内容，之后将要描述此次更改的内容，如：
+  - feature: update moving mesh
+  - map: complete the section 1 of level 1
+  - animation: ...
+  - assets: ...
+- 不同模块的开发放在不同提交版本，同一模块尽量放在同一提交中。
+- 为尽量避免冲突，同一对象的开发尽量由同一人完成。简单来说，内容侧滑菜单里，你创建的文件夹里的内容你自己做完，别人创建的东西不要乱动。

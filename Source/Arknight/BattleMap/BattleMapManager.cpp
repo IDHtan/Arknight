@@ -7,7 +7,6 @@
 
 void ABattleMapManager::GenerateGrid(FName LevelID)
 {
-	LevelID = TEXT("test");
 	FLevelLayoutConfig* LevelConfig = LevelConfigTable->FindRow<FLevelLayoutConfig>(LevelID, TEXT("Load Level"));
 	if(!LevelConfig)
 	{
