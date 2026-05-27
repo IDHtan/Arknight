@@ -23,16 +23,16 @@ void UTargetingComponent::InitializeAbsoluteRange(FIntVector2 Origin, EDeploymen
 		switch (FacingDirection)
 		{
 		case EDeploymentDirection::Up:
-			AbsolutePos += RelativePos;
+			AbsolutePos += FIntVector2(-RelativePos.Y,RelativePos.X);
 			break;
 		case EDeploymentDirection::Right:
-			AbsolutePos += FIntVector2(RelativePos.Y, -RelativePos.X);
-			break;
-		case EDeploymentDirection::Down:
 			AbsolutePos += FIntVector2(-RelativePos.X, -RelativePos.Y);
 			break;
+		case EDeploymentDirection::Down:
+			AbsolutePos += FIntVector2(RelativePos.Y, -RelativePos.X);
+			break;
 		case EDeploymentDirection::Left:
-			AbsolutePos += FIntVector2(-RelativePos.Y, RelativePos.X);
+			AbsolutePos += RelativePos;
 			break;
 		default:
 			break;

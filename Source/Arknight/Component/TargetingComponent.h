@@ -17,7 +17,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<FIntVector2> BaseAttackRange;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	float TargetingInterval = 0.1f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
