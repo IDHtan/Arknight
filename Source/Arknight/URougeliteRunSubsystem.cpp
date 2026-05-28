@@ -123,14 +123,7 @@ void URougeliteRunSubsystem::AddResource(EResourceType Type, int32 Amount)
 	CurrentSaveGame->GlobalResources.FindOrAdd(Type) += Amount;
 }
 
-void URougeliteRunSubsystem::ConcludeBattle(bool bIsVictory) //unfinished, just for testing
+void URougeliteRunSubsystem::ConcludeBattle() //unfinished, just for testing
 {
-	if (bIsVictory)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Win"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Lose"));
-	}
+	
 }

@@ -9,6 +9,7 @@
 #include "DeployableCell.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "BattleHUDWidget.h"
 
 void ABattlePlayerController::BeginPlay()
 {
@@ -45,6 +46,17 @@ void ABattlePlayerController::BeginPlay()
 		if (BattleMappingContext)
 		{
 			Subsystem->AddMappingContext(BattleMappingContext, 0);
+		}
+	}
+
+	if (HUDWidgetClass != nullptr)
+	{
+		HUDWidgetInstance = CreateWidget<UBattleHUDWidget>(this, HUDWidgetClass);
+		if (HUDWidgetInstance)
+		{
+			HUDWidgetInstance->AddToViewport();
+
+			//more initialization here to be writen in the future, like bind event to hud widget
 		}
 	}
 

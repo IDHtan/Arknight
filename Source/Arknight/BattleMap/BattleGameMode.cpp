@@ -10,8 +10,7 @@
 
 ABattleGameMode::ABattleGameMode()
 {
-	PlayerControllerClass = ABattlePlayerController::StaticClass();
-	DefaultPawnClass = ABattleCameraPawn::StaticClass();
+
 }
 
 void ABattleGameMode::BeginPlay()

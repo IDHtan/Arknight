@@ -10,6 +10,7 @@
 class ADeployableCell;
 class UInputMappingContext;
 class UInputAction;
+class UBattleHUDWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRosterUpdatedSignature, const TArray<FOperatorLocalRosterData>&, CurrentRoster);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCostChangedSignature, int32, NewCost);
@@ -28,6 +29,13 @@ public:
 	FOnCostChangedSignature OnCostChanged;
 	
 public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UBattleHUDWidget> HUDWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	UBattleHUDWidget* HUDWidgetInstance;
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameFlow")
 	bool bIsGamePaused;
 	

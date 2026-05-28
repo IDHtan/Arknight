@@ -62,5 +62,5 @@ public:
 	void AddResource(EResourceType Type, int32 Amount);
 
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	void ConcludeBattle(bool bIsVictory);
+	void ConcludeBattle();
 };
