@@ -94,10 +94,28 @@ public:
 	TSubclassOf<AOperatorBase> OperatorClass = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
-	bool bIsDeployed = false;
+	int32 OperatorLevel = 1;
+};
+
+USTRUCT(BlueprintType)
+struct FOperatorLocalRosterData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	FName OperatorName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	TSubclassOf<AOperatorBase> OperatorClass = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
 	int32 OperatorLevel = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	bool bIsDeployed = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	bool bCanDeploy = false;
 };
 
 USTRUCT(BlueprintType)
@@ -127,5 +145,4 @@ public:
 	TArray<TSubclassOf<ABattleCell>> LayoutData;
 
 };
-
 

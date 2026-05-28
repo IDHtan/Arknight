@@ -76,7 +76,6 @@ void URougeliteRunSubsystem::CheckOperators()
 			NewData.OperatorName = pair.Key;
 			NewData.OperatorClass = RowData->OperatorClass;
 			NewData.OperatorLevel = pair.Value;
-			NewData.bIsDeployed = false;
 			GlobalRoster.Add(NewData);
 		}
 		else {

@@ -29,10 +29,9 @@ void ABulletBase::InitializeBullet(
 
 	Direction = (TargetCoord - SelfCoord).GetSafeNormal() * FlySpeed;
 
-	SetLifeSpan(10.f);
+	SetLifeSpan(7.f);
 }
 
-// Called every frame
 void ABulletBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
