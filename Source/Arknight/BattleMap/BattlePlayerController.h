@@ -8,6 +8,7 @@
 #include "BattlePlayerController.generated.h"
 
 class ADeployableCell;
+class AResourceCell;
 class UInputMappingContext;
 class UInputAction;
 class UBattleHUDWidget;
@@ -52,7 +53,7 @@ public:
 	AOperatorBase* SelectedOperator;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Select")
-	ABattleCell* SelectedCell;
+	AResourceCell* SelectedCell;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Economy")
 	int32 CurrentDeploymentCost = 10;

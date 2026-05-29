@@ -4,8 +4,13 @@
 #include "../BattleMap/BattleHUDWidget.h"
 #include "Components/Button.h"
 #include "Components/CheckBox.h"
+#include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "ExitWidget.h"
+#include "OperatorDetailWidget.h"
+#include "CellDetailWidget.h"
+#include "BattlePlayerController.h"
+#include "../Operator/OperatorBase.h"
 
 void UBattleHUDWidget::NativeConstruct()
 {
@@ -26,12 +31,28 @@ void UBattleHUDWidget::NativeConstruct()
 		ExitButton->OnClicked.AddDynamic(this, &UBattleHUDWidget::OnExitButtonClicked);
 	}
 
+	if (ABattlePlayerController* BattlePC = Cast<ABattlePlayerController>(GetOwningPlayer()))
+	{
+		BattlePC->OnCostChanged.AddDynamic(this, &UBattleHUDWidget::OnCostUpdated);
+		OnCostUpdated(BattlePC->CurrentDeploymentCost);
+	}
+
 	bIsGamePaused = false;
 	CurrentSpeed = EGameSpeedState::Speed_1x;
 
 	if(ExitConfirmPanel)
 	{
 		ExitConfirmPanel->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	if(OperatorDetailPanel)
+	{
+		OperatorDetailPanel->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	if(CellDetailPanel)
+	{
+		CellDetailPanel->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -75,3 +96,56 @@ void UBattleHUDWidget::OnExitButtonClicked()
 	}
 }
 
+void UBattleHUDWidget::OnCostUpdated(int32 NewCost)
+{
+	if (TextCost)
+	{
+		TextCost->SetText(FText::AsNumber(NewCost));
+	}
+}
+
+void UBattleHUDWidget::ShowOperatorSelected(AOperatorBase* SelectedOp)
+{
+	HideAllDetails();
+	if(OperatorDetailPanel)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Showing details for operator"));
+		OperatorDetailPanel->UpdateAndShow(SelectedOp);
+	}
+}
+
+void UBattleHUDWidget::ShowOperatorDetailByClass(TSubclassOf<AOperatorBase> OpClass)
+{
+	HideAllDetails();
+	if(OperatorDetailPanel && !OpClass)
+	{
+		AOperatorBase* DefaultOp = OpClass->GetDefaultObject<AOperatorBase>();
+		if(DefaultOp)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Showing details for operator"));
+			OperatorDetailPanel->UpdateAndShow(DefaultOp);
+		}
+	}
+}
+
+void UBattleHUDWidget::ShowCellSelected(AResourceCell* SelectedCell)
+{
+	HideAllDetails();
+	if(CellDetailPanel)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Showing details for cell"));
+		CellDetailPanel->UpdateAndShow(SelectedCell);
+	}
+}
+
+void UBattleHUDWidget::HideAllDetails()
+{
+	if(OperatorDetailPanel)
+	{
+		OperatorDetailPanel->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	if(CellDetailPanel)
+	{
+		CellDetailPanel->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}

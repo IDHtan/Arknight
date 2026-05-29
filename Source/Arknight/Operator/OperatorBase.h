@@ -18,10 +18,16 @@ class ARKNIGHT_API AOperatorBase : public AActor
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName OperatorName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FText OperatorDescription;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UStaticMeshComponent* SpriteComponent;
 
-	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSoftObjectPtr<UTexture2D> OperatorAvatar;*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UTexture2D* AvatarImage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<ABulletBase> BulletClass;
@@ -52,6 +58,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EOperatorClassType OperatorClassType;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	class UWidgetComponent* ActionMenuComp;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Deployment")

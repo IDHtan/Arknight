@@ -7,6 +7,7 @@
 #include "BattleMapManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "DeployableCell.h"
+#include "ResourceCell.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "BattleHUDWidget.h"
@@ -104,31 +105,45 @@ void ABattlePlayerController::OnClickStarted()
 	if (bHit && HitResult.GetActor())
 	{
 		SelectedOperator = Cast<AOperatorBase>(HitResult.GetActor());
-		SelectedCell = Cast<ABattleCell>(HitResult.GetActor());
+		SelectedCell = Cast<AResourceCell>(HitResult.GetActor());
 		if(SelectedOperator)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Selected Operator: %s"), *SelectedOperator->GetName());
-			//call out ui to show operator info and possible actions
+			if(HUDWidgetInstance)
+			{
+				HUDWidgetInstance->ShowOperatorSelected(SelectedOperator);
+			}
 		}
 		else if(SelectedCell)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Selected Cell: %s"), *SelectedCell->GetName());
-			//call out ui to show cell info and possible actions
+			if(HUDWidgetInstance)
+			{
+				HUDWidgetInstance->ShowCellSelected(SelectedCell);
+			}
 		}
 		else
 		{
 			SelectedOperator = nullptr;
 			SelectedCell = nullptr;
+			if(HUDWidgetInstance)
+			 {
+				HUDWidgetInstance->HideAllDetails();
+			}
 		}
 	}
 	else
 	{
 		SelectedOperator = nullptr;
 		SelectedCell = nullptr;
+		if (HUDWidgetInstance)
+		{
+			HUDWidgetInstance->HideAllDetails();
+		}
 	}
 }
 
-// the cell to deploy is known, the cel can be deploy is known, check operator deploy cost and deploy
+// the cell to deploy is known, the cell can be deploy is known, check operator deploy cost and deploy
 void ABattlePlayerController::ExecuteDeployment(FName OperatorName, ADeployableCell* DeployCell, EDeploymentDirection DeployDirection)
 {
 	RefreshLocalRosterDeployability();

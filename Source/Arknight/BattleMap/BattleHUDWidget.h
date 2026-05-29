@@ -8,9 +8,11 @@
 #include "BattleHUDWidget.generated.h"
 
 class UExitWidget;
-
+class UTextBlock;
 class UCheckBox;
 class UButton;
+class UOperatorDetailWidget;
+class UCellDetailWidget;
 
 /**
  * 
@@ -33,6 +35,15 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UExitWidget* ExitConfirmPanel;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TextCost;
+	
+	UPROPERTY(meta = (BindWidget))
+	UOperatorDetailWidget* OperatorDetailPanel;
+
+	UPROPERTY(meta = (BindWidget))
+	UCellDetailWidget* CellDetailPanel;
+
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameFlow")
 	bool bIsGamePaused;
@@ -51,6 +62,19 @@ public:
 
 	UFUNCTION()
 	void OnExitButtonClicked();
-	
 
+	UFUNCTION()
+	void OnCostUpdated(int32 NewCost);
+	
+	UFUNCTION(BlueprintCallable)
+	void ShowOperatorSelected(AOperatorBase* SelectedOp);
+
+	UFUNCTION(BlueprintCallable)
+	void ShowOperatorDetailByClass(TSubclassOf<AOperatorBase> OpClass);
+
+	UFUNCTION(BlueprintCallable)
+	void ShowCellSelected(AResourceCell* SelectedCell);
+
+	UFUNCTION(BlueprintCallable)
+	void HideAllDetails();
 };
