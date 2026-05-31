@@ -57,6 +57,7 @@ void ABattlePlayerController::BeginPlay()
 				LocalData.CurrentDeploymentCost = DefaultOperator->DeploymentCost;
 				LocalData.RedeployTime = DefaultOperator->RedeployTime;
 				LocalData.RedeployCooldown = 0.0f;
+				LocalData.DeployType = DefaultOperator->DeployType;
 			}
 			LocalRoster.Add(LocalData);
 		}
@@ -156,39 +157,49 @@ void ABattlePlayerController::OnClickStarted()
 	{
 		if(SelectedDeployableCell)
 		{
+			UE_LOG(LogTemp, Log, TEXT("Selected Deployable Cell: %s"), *SelectedDeployableCell->GetName());
 			FOperatorLocalRosterData* OperatorData = LocalRoster.FindByPredicate(
 				[this](const FOperatorLocalRosterData& Data) {
 					return Data.OperatorName == this->SelectedOperatorCardName;
 				});
-			if (!OperatorData->bIsDeployed &&
+			if (!OperatorData)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("OperatorData not found for SelectedOperatorCardName: %s"), *SelectedOperatorCardName.ToString());
+			}
+			else if (!OperatorData->bIsDeployed &&
 				OperatorData->RedeployCooldown <= 0.0f &&
 				OperatorData->CurrentDeploymentCost <= this->CurrentDeploymentCost &&
-				!SelectedDeployableCell->bIsOccupied)
+				!SelectedDeployableCell->bIsOccupied &&
+				SelectedDeployableCell->CanDeploy(OperatorData->DeployType))
 			{
 				UE_LOG(LogTemp, Log, TEXT("Calling ShowDeployPanel"));
-				HUDWidgetInstance->ShowDeployPanel(SelectedOperatorCardName, SelectedDeployableCell);
-				SelectedOperatorCardName = NAME_None;
-				OperatorCardChanged(SelectedOperatorCardName);
+				FName OperatorCardName = SelectedOperatorCardName;
+				OperatorCardChanged(NAME_None);				
+				HUDWidgetInstance->ShowDeployPanel(OperatorCardName, SelectedDeployableCell);
 				SelectedDeployableCell = nullptr;
 				return;
 			}
 		}
 		UE_LOG(LogTemp, Log, TEXT("Broadcasting operatorcard to lower"));
 		HUDWidgetInstance->HideAllPanels();
-		SelectedOperatorCardName = NAME_None;
-		OperatorCardChanged(SelectedOperatorCardName);		
+		OperatorCardChanged(NAME_None);	
 	}	
 	SelectedDeployableCell = nullptr;
 
 	if (SelectedOperator)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Selected Operator: %s"), *SelectedOperator->OperatorName.ToString());
+		UE_LOG(LogTemp, Log, TEXT("Selected Operator: %s"), *SelectedOperator->OperatorName.ToString());
 		HUDWidgetInstance->ShowOperatorSelected(SelectedOperator);
 	}
 	else if(SelectedResourceCell)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Selected Resource Cell: %s"), *SelectedResourceCell->GetName());
+		UE_LOG(LogTemp, Log, TEXT("Selected Resource Cell: %s"), *SelectedResourceCell->GetName());
 		HUDWidgetInstance->ShowCellSelected(SelectedResourceCell);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Selected nothing"));
+		HUDWidgetInstance->HideAllPanels();
 	}
 }
 
@@ -196,6 +207,17 @@ void ABattlePlayerController::OperatorCardChanged(FName OperatorName)
 {
 	SelectedOperatorCardName = OperatorName;
 	OnOperatorCardClicked.Broadcast(OperatorName);
+
+	if(OperatorName != NAME_None)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Selected Operator Card: %s"), *OperatorName.ToString());
+		HUDWidgetInstance->ShowOperatorCardSelected(OperatorName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("No Operator Card Selected"));
+		HUDWidgetInstance->HideAllPanels();
+	}
 }
 
 // the cell to deploy is known, the cell can be deploy is known, check operator deploy cost and deploy
@@ -213,17 +235,21 @@ void ABattlePlayerController::Deploy(FName OperatorName, ADeployableCell* Deploy
 			return;
 		}
 
-		FVector CellWorldLocation =DeployCell->GetActorLocation();
-		FVector OpSpawnLocation = FVector(CellWorldLocation.X, CellWorldLocation.Y, (DeployCell->LogicalCellType == ECellType::DeployableGround) ? 50.0f : 75.0f);
+		FVector CellWorldLocation = DeployCell->GetActorLocation();
+		FVector OpSpawnLocation = CellWorldLocation;
 		AOperatorBase* SpawnedOperator = GetWorld()->SpawnActor<AOperatorBase>(OperatorData->OperatorClass, OpSpawnLocation, FRotator::ZeroRotator);
 		if (SpawnedOperator)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Operator deployed: %s"), *SpawnedOperator->OperatorName.ToString());
-			SpawnedOperator->OnDeployed(DeployCell->GridCoordinate, DeployDirection, OperatorData->OperatorLevel);
+			SpawnedOperator->OnDeployed(DeployCell->GridCoordinate, DeployDirection, OperatorData->OperatorLevel, DeployCell);
 			DeployCell->SetOccupyingOperator(SpawnedOperator);
 			OperatorData->bIsDeployed = true;
 			OperatorData->OperatorInstance = SpawnedOperator;
 			IncreaseCost(-DefaultOperator->DeploymentCost);
+			if (HUDWidgetInstance)
+			{
+				HUDWidgetInstance->RefreshOperatorCards();
+			}
 		}
 		else
 		{
@@ -239,6 +265,12 @@ void ABattlePlayerController::Deploy(FName OperatorName, ADeployableCell* Deploy
 
 void ABattlePlayerController::Retreat(AOperatorBase* Operator)
 {
+	if (!IsValid(Operator))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Retreat failed: Operator is null or invalid"));
+		return;
+	}
+
 	FOperatorLocalRosterData* OperatorData = LocalRoster.FindByPredicate([&Operator](const FOperatorLocalRosterData& Data) {
 		return Data.OperatorName == Operator->OperatorName;
 	});
@@ -247,11 +279,11 @@ void ABattlePlayerController::Retreat(AOperatorBase* Operator)
 		IncreaseCost(OperatorData->CurrentDeploymentCost * 0.5f);
 		OperatorData->CurrentDeploymentCost = FMath::Min(
 			OperatorData->CurrentDeploymentCost * 1.5f, 
-			OperatorData->OperatorInstance->DeploymentCost * 2.0f);
+			Operator->DeploymentCost * 2.0f);
 
 		if (ABattleMapManager* MapManager = Cast<ABattleMapManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ABattleMapManager::StaticClass())))
 		{
-			if (ABattleCell* Cell = MapManager->GetCellFromCoordinate(OperatorData->OperatorInstance->GridLocation))
+			if (ABattleCell* Cell = MapManager->GetCellFromCoordinate(Operator->GridLocation))
 			{
 				if (ADeployableCell* DeployCell = Cast<ADeployableCell>(Cell))
 				{
@@ -260,12 +292,16 @@ void ABattlePlayerController::Retreat(AOperatorBase* Operator)
 			}
 		}
 
-		OperatorData->OperatorInstance->OnRetreat();
+		Operator->OnRetreat();
 		UE_LOG(LogTemp, Log, TEXT("Operator retreated: %s"), *OperatorData->OperatorName.ToString());
 
 		OperatorData->bIsDeployed = false;
 		OperatorData->OperatorInstance = nullptr;
-		OperatorData->RedeployCooldown = OperatorData->RedeployTime;				
+		OperatorData->RedeployCooldown = OperatorData->RedeployTime;
+		if (HUDWidgetInstance)
+		{
+			HUDWidgetInstance->RefreshOperatorCards();
+		}
 	}
 	else
 	{

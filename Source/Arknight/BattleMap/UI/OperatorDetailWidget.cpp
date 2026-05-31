@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "OperatorDetailWidget.h"
@@ -17,7 +17,7 @@ void UOperatorDetailWidget::NativeConstruct()
 	Super::NativeConstruct();
 	if (ButtonRetreat)
 	{
-		ButtonRetreat->OnClicked.AddDynamic(this, &UOperatorDetailWidget::HidePanel);
+		ButtonRetreat->OnClicked.AddDynamic(this, &UOperatorDetailWidget::OnRetreatClicked);
 	}
 
 	OperatorInfo = nullptr;
@@ -58,7 +58,7 @@ void UOperatorDetailWidget::UpdateAndShow(FName OperatorName)
 		TextAspd->SetText(FText::Format(NSLOCTEXT("UI", "Atk", "攻击速度: {0}"), FText::AsNumber(100.f / OperatorInfo->TargetingComp->AttackSpeed)));
 
 		GridAttackRange->ClearChildren();
-		int32 CenterRow = 3, CenterCol = 1;
+		int32 CenterRow = 3, CenterCol = 3;
 		UUserWidget* SelfBlock = CreateWidget<UUserWidget>(this, GridBlockClass);
 		if(SelfBlock)
 		{
@@ -112,13 +112,18 @@ void UOperatorDetailWidget::HidePanel()
 
 void UOperatorDetailWidget::OnRetreatClicked()
 {
-	UE_LOG(LogTemp, Log, TEXT("Retreat button clicked for operator: %s"), *OperatorInfo->OperatorName.ToString());
 	if (OperatorInfo)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Retreat button clicked for operator: %s"), *OperatorInfo->OperatorName.ToString());
 		if(ABattlePlayerController* PC = Cast<ABattlePlayerController>(GetOwningPlayer()))
 		{
 			PC->Retreat(OperatorInfo);
 		}
+		SetVisibility(ESlateVisibility::Collapsed);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Retreat button clicked but OperatorInfo is null"));
 	}
 }
 

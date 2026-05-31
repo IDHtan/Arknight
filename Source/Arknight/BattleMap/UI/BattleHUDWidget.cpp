@@ -6,6 +6,7 @@
 #include "Components/CheckBox.h"
 #include "Components/TextBlock.h"
 #include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanelSlot.h" 
@@ -50,14 +51,23 @@ void UBattleHUDWidget::NativeConstruct()
 	bIsGamePaused = false;
 	CurrentSpeed = EGameSpeedState::Speed_1x;
 
-	for(const FOperatorLocalRosterData& LocalData : BattlePC->LocalRoster)
+	if (BattlePC && RosterPanel && OperatorCardWidgetClass)
 	{
-		UOperatorCardWidget* NewCard = CreateWidget<UOperatorCardWidget>(this, OperatorCardWidgetClass);
-		if (NewCard)
+		for (const FOperatorLocalRosterData& LocalData : BattlePC->LocalRoster)
 		{
-			NewCard->SetVisibility(ESlateVisibility::Visible);
-			NewCard->OnCreated(LocalData);
-			RosterPanel->AddChild(NewCard);
+			UOperatorCardWidget* NewCard = CreateWidget<UOperatorCardWidget>(this, OperatorCardWidgetClass);
+			if (NewCard)
+			{
+				NewCard->SetVisibility(ESlateVisibility::Visible);
+				NewCard->OnCreated(LocalData);
+				UHorizontalBoxSlot* BoxSlot = RosterPanel->AddChildToHorizontalBox(NewCard);
+				if (BoxSlot)
+				{
+					BoxSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+					BoxSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 0.0f));
+					BoxSlot->SetVerticalAlignment(VAlign_Bottom);
+				}
+			}
 		}
 	}
 
@@ -75,6 +85,10 @@ void UBattleHUDWidget::NativeConstruct()
 	if (CellDetailPanel)
 	{
 		CellDetailPanel->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	if(DeployPanel)
+	{
+		DeployPanel->SetVisibility(ESlateVisibility::Collapsed);
 	}
 #pragma endregion	
 }
@@ -131,8 +145,16 @@ void UBattleHUDWidget::ShowOperatorSelected(AOperatorBase* SelectedOp)
 	HideAllPanels();
 	if(OperatorDetailPanel)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Showing details for operator"));
 		OperatorDetailPanel->UpdateAndShow(SelectedOp->OperatorName);
+	}
+}
+
+void UBattleHUDWidget::ShowOperatorCardSelected(FName OperatorName)
+{
+	HideAllPanels();
+	if(OperatorDetailPanel)
+	{
+		OperatorDetailPanel->UpdateAndShow(OperatorName);
 	}
 }
 
@@ -141,7 +163,6 @@ void UBattleHUDWidget::ShowCellSelected(AResourceCell* SelectedCell)
 	HideAllPanels();
 	if(CellDetailPanel)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Showing details for cell"));
 		CellDetailPanel->UpdateAndShow(SelectedCell);
 	}
 }
@@ -164,11 +185,21 @@ void UBattleHUDWidget::HideAllPanels()
 
 void UBattleHUDWidget::ShowDeployPanel(FName OperatorName, ADeployableCell* DeployableCell)
 {
-	HideAllPanels();
 	if(DeployPanel)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Showing deploy panel for operator: %s"), *OperatorName.ToString());
-		
+
+		if (!DeployableCell)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ShowDeployPanel failed: DeployableCell is null"));
+			return;
+		}
+		if (!BattlePC)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ShowDeployPanel failed: BattlePC is null"));
+			return;
+		}
+
 		FVector TargetWorldPos = DeployableCell->GetActorLocation();
 		FVector2D ScreenPos;
 		UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(
@@ -177,16 +208,34 @@ void UBattleHUDWidget::ShowDeployPanel(FName OperatorName, ADeployableCell* Depl
 			ScreenPos,
 			false
 		);
+		UE_LOG(LogTemp, Warning, TEXT("Projected world position %s to screen position %s"), *TargetWorldPos.ToString(), *ScreenPos.ToString());
+
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(DeployPanel->Slot))
 		{
 			CanvasSlot->SetPosition(ScreenPos);
 		}
-
-		DeployPanel->OnShow(OperatorName, DeployableCell);
 		DeployPanel->SetVisibility(ESlateVisibility::Visible);
+		DeployPanel->OnShow(OperatorName, DeployableCell);
+
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("DeployPanel is not set in the HUD widget"));
+	}
+}
+
+void UBattleHUDWidget::RefreshOperatorCards()
+{
+	if (!RosterPanel)
+	{
+		return;
+	}
+
+	for (int32 Index = 0; Index < RosterPanel->GetChildrenCount(); ++Index)
+	{
+		if (UOperatorCardWidget* OperatorCard = Cast<UOperatorCardWidget>(RosterPanel->GetChildAt(Index)))
+		{
+			OperatorCard->RefreshCardState();
+		}
 	}
 }

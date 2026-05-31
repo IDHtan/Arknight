@@ -2,6 +2,9 @@
 
 
 #include "DeployableCell.h"
+#include "../../DS.h"
+#include "../Controller/BattlePlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 void ADeployableCell::SetOccupyingOperator(AOperatorBase* Operator)
 {
@@ -16,6 +19,16 @@ void ADeployableCell::SetOccupyingOperator(AOperatorBase* Operator)
 		bIsOccupied = false;
 	}
 	
+	//***
+	//*metion*: this need to reset back after viusal effect is implemented
+	//***
+	/*ABattlePlayerController* BattlePC = Cast<ABattlePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (!BattlePC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DeployableCell set up failed: PlayerController not found"));
+		return;
+	}
+	BattlePC->OnOperatorCardClicked.AddDynamic(this, &ADeployableCell::OnOperatorCardClicked);*/
 }
 
 bool ADeployableCell::CanDeploy(EOperatorDeployType DeployType)
@@ -43,4 +56,39 @@ bool ADeployableCell::CanDeploy(EOperatorDeployType DeployType)
 
 	DisableVisualEffect();
 	return false;
+}
+
+void ADeployableCell::OnOperatorCardClicked(FName OperatorName)
+{
+	ABattlePlayerController* BattlePC = Cast<ABattlePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if(!BattlePC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DeployableCell OnOperatorCardClicked failed: PlayerController not found, OperatorName=%s"), *OperatorName.ToString());
+		return;
+	}
+
+	FOperatorLocalRosterData* OperatorData = BattlePC->LocalRoster.FindByPredicate(
+		[&OperatorName](const FOperatorLocalRosterData& Data) {
+			return Data.OperatorName == OperatorName;
+		});
+	if(!OperatorData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DeployableCell OnOperatorCardClicked failed: OperatorData not found, OperatorName=%s"), *OperatorName.ToString());
+		return;
+	}
+
+	if (OperatorData->bIsDeployed)
+	{
+		return;
+	}
+
+	if((OperatorData->DeployType==EOperatorDeployType::Melee && LogicalCellType != ECellType::DeployableGround) ||
+		(OperatorData->DeployType==EOperatorDeployType::Ranged && LogicalCellType != ECellType::DeployableHighGround))
+	{
+		EnableVisualEffect();
+	}
+	else
+	{
+		DisableVisualEffect();
+	}
 }

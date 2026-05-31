@@ -42,6 +42,9 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
+	void RefreshCardState();
+
+	UFUNCTION(BlueprintCallable)
 	void OnCreated(const FOperatorLocalRosterData& OperatorRD);
 
 	UFUNCTION(BlueprintCallable)

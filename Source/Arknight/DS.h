@@ -115,6 +115,9 @@ public:
 	bool bIsDeployed = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	EOperatorDeployType DeployType = EOperatorDeployType::Any;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
 	int32 OperatorLevel = 1;	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")

@@ -39,6 +39,51 @@ void UOperatorCardWidget::OnCreated(const FOperatorLocalRosterData& OperatorRD)
 	{
 		ImageAvatar->SetBrushFromTexture(DefaultOperator->AvatarImage);
 	}
+	RefreshCardState();
+}
+
+void UOperatorCardWidget::RefreshCardState()
+{
+	if (!OperatorData)
+	{
+		return;
+	}
+
+	if (OperatorData->bIsDeployed)
+	{
+		if (GetVisibility() != ESlateVisibility::Collapsed)
+		{
+			SetVisibility(ESlateVisibility::Collapsed);
+		}
+		return;
+	}
+
+	if (GetVisibility() != ESlateVisibility::Visible)
+	{
+		SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (OperatorData->CurrentDeploymentCost != CurrentCost)
+	{
+		CurrentCost = OperatorData->CurrentDeploymentCost;
+		if (TextCost)
+		{
+			TextCost->SetText(FText::AsNumber(CurrentCost));
+		}
+	}
+
+	if (ProgressBarCoolDown)
+	{
+		if (OperatorData->RedeployCooldown > 0.0f && OperatorData->RedeployTime > 0.0f)
+		{
+			ProgressBarCoolDown->SetVisibility(ESlateVisibility::Visible);
+			ProgressBarCoolDown->SetPercent(OperatorData->RedeployCooldown / OperatorData->RedeployTime);
+		}
+		else
+		{
+			ProgressBarCoolDown->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
 }
 
 void UOperatorCardWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -52,30 +97,7 @@ void UOperatorCardWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 		return;
 	}
 
-	if (OperatorData->bIsDeployed && Visibility != ESlateVisibility::Collapsed)
-	{
-		SetVisibility(ESlateVisibility::Collapsed);
-	}
-	else if (!OperatorData->bIsDeployed && Visibility != ESlateVisibility::Visible)
-	{
-		SetVisibility(ESlateVisibility::Visible);
-	}
-
-	if(OperatorData->CurrentDeploymentCost != CurrentCost)
-	{
-		CurrentCost = OperatorData->CurrentDeploymentCost;
-		TextCost->SetText(FText::AsNumber(CurrentCost));
-	}
-
-	if(OperatorData->RedeployCooldown > 0.0f)
-	{
-		ProgressBarCoolDown->SetPercent(OperatorData->RedeployCooldown / OperatorData->RedeployTime);
-	}
-	else
-	{
-		ProgressBarCoolDown->SetVisibility(ESlateVisibility::Collapsed);
-	}
-
+	RefreshCardState();
 }
 
 void UOperatorCardWidget::OnClicked()

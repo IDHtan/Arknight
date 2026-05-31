@@ -92,6 +92,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ShowOperatorSelected(AOperatorBase* SelectedOp);
 
+	UFUNCTION(BlueprintCallable)
+	void ShowOperatorCardSelected(FName OperatorName);
+
 	/*UFUNCTION(BlueprintCallable)
 	void ShowOperatorDetailByClass(TSubclassOf<AOperatorBase> OpClass);*/
 
@@ -105,5 +108,8 @@ public:
 #pragma region DeployFunctions
 	UFUNCTION(BlueprintCallable)
 	void ShowDeployPanel(FName OperatorName, ADeployableCell* DeployableCell);
+
+	UFUNCTION(BlueprintCallable)
+	void RefreshOperatorCards();
 #pragma endregion
 };

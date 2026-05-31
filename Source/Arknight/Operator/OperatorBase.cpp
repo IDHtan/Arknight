@@ -3,6 +3,7 @@
 
 #include "OperatorBase.h"
 #include "BulletBase.h"
+#include "../BattleMap/Cell/DeployableCell.h"
 #include "Components/WidgetComponent.h"
 
 AOperatorBase::AOperatorBase()
@@ -11,27 +12,45 @@ AOperatorBase::AOperatorBase()
 	PrimaryActorTick.bCanEverTick = false;
 
 	SpriteComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpriteComponent"));
+	RootComponent = SpriteComponent;
 	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
-	/*ActionMenuComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("ActionMenuComp"));
-	ActionMenuComp->SetupAttachment(RootComponent);
-	ActionMenuComp->SetWidgetSpace(EWidgetSpace::Screen);
-	ActionMenuComp->SetVisibility(false);
-	ActionMenuComp->SetDrawAtDesiredSize(true);*/
 }
 
-void AOperatorBase::OnDeployed(FIntVector2 Location, EDeploymentDirection Direction, int32 InitialLevel)
+void AOperatorBase::OnDeployed(FIntVector2 Location, EDeploymentDirection Direction, int32 InitialLevel, ADeployableCell* DeployCell)
 {
 	GridLocation = Location;
 	FacingDirection = Direction;
-	TargetingComp->AttackPower = TargetingComp->AttackPower * pow(1.25f, InitialLevel - 1);
-	TargetingComp->InitializeAbsoluteRange(GridLocation, FacingDirection);
+	if (IsValid(DeployCell))
+	{
+		FVector CellBoundsOrigin;
+		FVector CellBoundsExtent;
+		DeployCell->GetActorBounds(true, CellBoundsOrigin, CellBoundsExtent);
+
+		FVector OperatorBoundsOrigin;
+		FVector OperatorBoundsExtent;
+		GetActorBounds(true, OperatorBoundsOrigin, OperatorBoundsExtent);
+
+		const float CellTopZ = CellBoundsOrigin.Z + CellBoundsExtent.Z;
+		const float OperatorBottomZ = OperatorBoundsOrigin.Z - OperatorBoundsExtent.Z;
+		const float PlacementOffsetZ = CellTopZ - OperatorBottomZ + VisualPlacementOffsetZ;
+		AddActorWorldOffset(FVector(0.0f, 0.0f, PlacementOffsetZ));
+	}
+
+	if (TargetingComp)
+	{
+		TargetingComp->AttackPower = TargetingComp->AttackPower * pow(1.25f, InitialLevel - 1);
+		TargetingComp->InitializeAbsoluteRange(GridLocation, FacingDirection);
+	}
 
 	//---
 	//Deploy Animation here
 	//----
 
-	GetWorld()->GetTimerManager().SetTimer(TargetingTimerHandle, this, &AOperatorBase::OnTargetingTimerTick, TargetingComp->TargetingInterval, true);
-	UE_LOG(LogTemp, Log, TEXT("Operator start targeting"));
+	if (TargetingComp)
+	{
+		GetWorld()->GetTimerManager().SetTimer(TargetingTimerHandle, this, &AOperatorBase::OnTargetingTimerTick, TargetingComp->TargetingInterval, true);
+		UE_LOG(LogTemp, Log, TEXT("Operator start targeting"));
+	}
 }
 
 void AOperatorBase::OnTargetingTimerTick()

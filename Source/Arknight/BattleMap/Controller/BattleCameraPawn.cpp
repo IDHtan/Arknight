@@ -19,16 +19,16 @@ ABattleCameraPawn::ABattleCameraPawn()
 
 	SpringArm->bDoCollisionTest = false;
 	
-	Camera->SetFieldOfView(30.f);
+	Camera->SetFieldOfView(20.f);
 }
 
 void ABattleCameraPawn::FrameGridToScreen(int32 GridX, int32 GridY, float CellSize)
 {
-	SetActorLocation(FVector(CellSize * (GridX - 1) / 2, CellSize * (GridY-1) / 2, 0));
+	SetActorLocation(FVector(CellSize * (GridX - 1) / 2, CellSize * (GridY) / 2, 0));
 	RootComp->SetWorldRotation(FRotator(0.f, 0.f, 0.f));
 	SpringArm->SetRelativeRotation(FRotator(-60.f, 90.f, 0.f));
 
-	float Y = (GridY * 3 + 3) * CellSize;
+	float Y = (GridY * 3 + 12) * CellSize;
 	float X = (GridX * 3 - 3) * CellSize;
 
 	SpringArm->TargetArmLength = FMath::Max(X,Y);

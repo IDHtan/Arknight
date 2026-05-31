@@ -10,6 +10,7 @@
 #include "OperatorBase.generated.h"
 
 class ABulletBase;
+class ADeployableCell;
 
 UCLASS()
 class ARKNIGHT_API AOperatorBase : public AActor
@@ -25,6 +26,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UStaticMeshComponent* SpriteComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+	float VisualPlacementOffsetZ = 0.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UTexture2D* AvatarImage;
@@ -64,7 +68,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Deployment")
-	void OnDeployed(FIntVector2 Location, EDeploymentDirection Direction, int32 InitialLevel);
+	void OnDeployed(FIntVector2 Location, EDeploymentDirection Direction, int32 InitialLevel, ADeployableCell* DeployCell);
 
 	UFUNCTION(BlueprintCallable, Category = "Deployment")
 	void OnRetreat();

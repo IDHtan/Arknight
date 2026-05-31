@@ -52,7 +52,9 @@ TArray<TScriptInterface<ITargetableInterface>> UTargetingComponent::PerformGridS
 	for (const FIntVector2& Pos : CurrentAbsoluteRange)
 	{
 		ABattleCell* TargetCell = BattleMapManager->GetCellFromCoordinate(Pos);
-		if (!TargetCell && !TargetCell->Implements<UTargetableInterface>())
+		if (!IsValid(TargetCell))
+			continue;
+		if (!TargetCell->GetClass()->ImplementsInterface(UTargetableInterface::StaticClass()))
 			continue;
 		if (!ITargetableInterface::Execute_CanBeTargetedBy(TargetCell, GetOwner()))
 			continue;
@@ -64,7 +66,10 @@ TArray<TScriptInterface<ITargetableInterface>> UTargetingComponent::PerformGridS
 			return CalculateTargetScore(A) < CalculateTargetScore(B);
 		});
 
-	ValidTargetCells.SetNum(MaxTargets);
+	if (ValidTargetCells.Num() > MaxTargets)
+	{
+		ValidTargetCells.SetNum(MaxTargets);
+	}
 	return ValidTargetCells;
 
 }

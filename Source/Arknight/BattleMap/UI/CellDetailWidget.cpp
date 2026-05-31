@@ -47,6 +47,7 @@ void UCellDetailWidget::UpdateAndShow(AResourceCell* ResourceInfo)
 	}	
 	TextAmount->SetText(FText::Format(NSLOCTEXT("UI", "Amount", "剩余数量: {0}"), FText::AsNumber(ResourceInfo->DropAmount)));
 	TextHealth->SetText(FText::Format(NSLOCTEXT("UI", "Health", "{0}/{1}"), FText::AsNumber(ResourceInfo->HealthComp->CurrentHealth), FText::AsNumber(ResourceInfo->HealthComp->MaxHealth)));
+	UE_LOG(LogTemp, Log, TEXT("Current Health: %f, Max Health: %f"), ResourceInfo->HealthComp->CurrentHealth, ResourceInfo->HealthComp->MaxHealth);
 	TextDefense->SetText(FText::Format(NSLOCTEXT("UI", "Defense", "防御: {0}"), FText::AsNumber(ResourceInfo->HealthComp->Defense)));
 	TextArtsResistance->SetText(FText::Format(NSLOCTEXT("UI", "ArtsResist", "法术抗性: {0}"), FText::AsNumber(ResourceInfo->HealthComp->ArtsResistance)));
 	

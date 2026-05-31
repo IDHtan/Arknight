@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool CanDeploy(EOperatorDeployType DeployTpe);
 
+	UFUNCTION(BlueprintCallable)
+	void OnOperatorCardClicked(FName OperatorName);
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "CellVisual")
 	void EnableVisualEffect();
 

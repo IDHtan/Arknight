@@ -10,7 +10,7 @@
 AResourceCell::AResourceCell()
 {
 	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-
+	
 }
 
 void AResourceCell::BeginPlay()
@@ -21,6 +21,9 @@ void AResourceCell::BeginPlay()
 	{
 		HealthComp->OnDeathEvent.AddDynamic(this, &AResourceCell::OnCellDepleted);
 	}
+
+	HealthComp->CurrentHealth = HealthComp->MaxHealth;
+
 }
 
 void AResourceCell::OnCellDepleted(AActor* Killer)
