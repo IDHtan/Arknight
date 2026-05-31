@@ -5,8 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "BattlePlayerController.h"
 #include "BattleCameraPawn.h"
-#include "BattleMapManager.h"
-#include "../URougeliteRunSubsystem.h"
+#include "../BattleMapManager.h"
+#include "../../URougeliteRunSubsystem.h"
 
 ABattleGameMode::ABattleGameMode()
 {

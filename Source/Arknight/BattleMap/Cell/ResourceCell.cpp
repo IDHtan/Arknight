@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../BattleMap/ResourceCell.h"
-#include "../Component/HealthComponent.h"
-#include "../URougeliteRunSubsystem.h"
-#include "../BattleMap/BattleMapManager.h"
+#include "ResourceCell.h"
+#include "../../Component/HealthComponent.h"
+#include "../../URougeliteRunSubsystem.h"
+#include "../BattleMapManager.h"
 #include "Kismet/GameplayStatics.h"
 
 AResourceCell::AResourceCell()

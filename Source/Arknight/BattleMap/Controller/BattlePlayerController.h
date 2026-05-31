@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "../DS.h"
+#include "../../DS.h"
 #include "BattlePlayerController.generated.h"
 
 class ADeployableCell;
@@ -13,8 +13,10 @@ class UInputMappingContext;
 class UInputAction;
 class UBattleHUDWidget;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRosterUpdatedSignature, const TArray<FOperatorLocalRosterData>&, CurrentRoster);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOperatorDeployedSignature, const FOperatorLocalRosterData&, OperatorRD);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOperatorRetreatedSignature, const FOperatorLocalRosterData&, OperatorRD);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCostChangedSignature, int32, NewCost);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOperatorCardClicked, FName, OperatorName);
 /**
  * 
  */
@@ -23,11 +25,12 @@ class ARKNIGHT_API ABattlePlayerController : public APlayerController
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnRosterUpdatedSignature OnRosterUpdated;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnCostChangedSignature OnCostChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnOperatorCardClicked OnOperatorCardClicked;
 	
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
@@ -35,25 +38,40 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	UBattleHUDWidget* HUDWidgetInstance;
+#pragma region Deprecate
+	/*UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnOperatorDeployedSignature OnOperatorDeployed;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnOperatorRetreatedSignature OnOperatorRetreated;*/
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameFlow")
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameFlow")
 	bool bIsGamePaused;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameFlow")
-	EGameSpeedState CurrentSpeed;
+	EGameSpeedState CurrentSpeed;*/
 
+#pragma endregion
+	
+#pragma region Input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* BattleMappingContext;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputAction* ClickAction;
+#pragma endregion	
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category="Select")
 	AOperatorBase* SelectedOperator;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Select")
-	AResourceCell* SelectedCell;
+	FName SelectedOperatorCardName;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Select")
+	AResourceCell* SelectedResourceCell;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Select")
+	ADeployableCell* SelectedDeployableCell;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Economy")
 	int32 CurrentDeploymentCost = 10;
@@ -62,27 +80,35 @@ public:
 	TArray<FOperatorLocalRosterData> LocalRoster;
 
 public:
+	ABattlePlayerController();
+
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
+	virtual void Tick(float DeltaSeconds) override;
+
 	virtual void SetupInputComponent() override;
 	
 public:
+	UFUNCTION(BlueprintCallable)
 	void OnClickStarted();
 
+	UFUNCTION(BlueprintCallable)
+	void OperatorCardChanged(FName OperatorName);
+
 public:
+#pragma region Cost
 	FTimerHandle IncreaseCostNaturallyTimerHandle;
 
 	UFUNCTION(BlueprintCallable)
 	void IncreaseCost(int32 Amount);
+#pragma endregion	
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void ExecuteDeployment(FName OperatorName, ADeployableCell* DeployCell, EDeploymentDirection DeployDirection);
+	void Deploy(FName OperatorName, ADeployableCell* DeployCell, EDeploymentDirection DeployDirection);
 
-
-
-private:
-	void RefreshLocalRosterDeployability();
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void Retreat(AOperatorBase* Operat);
 };

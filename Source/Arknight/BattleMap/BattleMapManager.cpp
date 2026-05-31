@@ -2,7 +2,7 @@
 
 
 #include "BattleMapManager.h"
-#include "../BattleMap/BattleCell.h"
+#include "Cell/BattleCell.h"
 #include "../RougeliteSettings.h"
 
 void ABattleMapManager::GenerateGrid(FName LevelID)

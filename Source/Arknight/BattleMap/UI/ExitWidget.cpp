@@ -1,10 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../BattleMap/ExitWidget.h"
+#include "ExitWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
-#include "../URougeliteRunSubsystem.h"
+#include "../../URougeliteRunSubsystem.h"
+#include "../Controller/BattlePlayerController.h"
+#include "BattleHUDWidget.h"
 
 void UExitWidget::NativeConstruct()
 {
@@ -36,5 +38,5 @@ void UExitWidget::OnCancelClicked()
 {
     UE_LOG(LogTemp, Log, TEXT("Cancel button clicked"));
     SetVisibility(ESlateVisibility::Collapsed);
-	UGameplayStatics::SetGamePaused(GetWorld(), false);
+	UGameplayStatics::SetGamePaused(GetWorld(), Cast<ABattlePlayerController>(GetOwningPlayer())->HUDWidgetInstance->bIsGamePaused);
 }

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../Interface/TargetableInterface.h"
+#include "../../Interface/TargetableInterface.h"
 #include "BattleCell.generated.h"
 
 UCLASS()

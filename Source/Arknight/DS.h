@@ -109,13 +109,22 @@ public:
 	TSubclassOf<AOperatorBase> OperatorClass = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
-	int32 OperatorLevel = 1;
+	AOperatorBase* OperatorInstance = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
 	bool bIsDeployed = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
-	bool bCanDeploy = false;
+	int32 OperatorLevel = 1;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	int32 CurrentDeploymentCost = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	float RedeployTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	float RedeployCooldown = 0.0f;
 };
 
 USTRUCT(BlueprintType)

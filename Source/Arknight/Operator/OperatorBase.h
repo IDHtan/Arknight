@@ -53,14 +53,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EOperatorDeployType DeployType;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float RedeployTime;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EOperatorAttackType AttackType;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EOperatorClassType OperatorClassType;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	class UWidgetComponent* ActionMenuComp;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Deployment")

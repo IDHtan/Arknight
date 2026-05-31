@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../BattleMap/BattleCell.h"
-#include "../Interface/TargetableInterface.h"
+#include "BattleCell.h"
+#include "../../Interface/TargetableInterface.h"
 #include "ResourceCell.generated.h"
 
 class UHealthComponent;

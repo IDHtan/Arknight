@@ -1,17 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../BattleMap/DeployableCell.h"
+#include "DeployableCell.h"
 
-bool ADeployableCell::SetOccupyingOperator(AOperatorBase* Operator)
+void ADeployableCell::SetOccupyingOperator(AOperatorBase* Operator)
 {
-	if (bIsOccupied)
+	if (Operator) 
 	{
-		return false;
+		OccupyingOperator = Operator;
+		bIsOccupied = true;
 	}
-	OccupyingOperator = Operator;
-	bIsOccupied = true;
-	return true;
+	else
+	{
+		OccupyingOperator = nullptr;
+		bIsOccupied = false;
+	}
+	
 }
 
 bool ADeployableCell::CanDeploy(EOperatorDeployType DeployType)

@@ -41,10 +41,21 @@ public:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UUserWidget> GridBlockClass;
 
+    UPROPERTY(meta = (BindWidget))
+    class UButton* ButtonRetreat;
+
+    UPROPERTY()
+	AOperatorBase* OperatorInfo;
+
 public:
+	virtual void NativeConstruct() override;
+
     UFUNCTION(BlueprintCallable, Category = "UI")
-    void UpdateAndShow(AOperatorBase* OperatorInfo);
+    void UpdateAndShow(FName OperatorName);
 
     UFUNCTION(BlueprintCallable, Category = "UI")
     void HidePanel();
+
+    UFUNCTION(BlueprintCallable)
+	void OnRetreatClicked();
 };

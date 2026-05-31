@@ -3,7 +3,7 @@
 
 #include "TargetingComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "../BattleMap/BattleCell.h"
+#include "../BattleMap/Cell/BattleCell.h"
 #include "../Operator/OperatorBase.h"
 #include "../Interface/TargetableInterface.h"
 #include "../BattleMap/BattleMapManager.h"

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../DS.h"
-#include "../BattleMap/BattleCell.h"
+#include "../../DS.h"
+#include "BattleCell.h"
 #include "DeployableCell.generated.h"
 
 /**
@@ -24,7 +24,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	bool SetOccupyingOperator(AOperatorBase* Operator);
+	void SetOccupyingOperator(AOperatorBase* Operator);
 
 	UFUNCTION(BlueprintCallable)
 	bool CanDeploy(EOperatorDeployType DeployTpe);

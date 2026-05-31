@@ -12,11 +12,11 @@ AOperatorBase::AOperatorBase()
 
 	SpriteComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpriteComponent"));
 	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
-	ActionMenuComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("ActionMenuComp"));
+	/*ActionMenuComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("ActionMenuComp"));
 	ActionMenuComp->SetupAttachment(RootComponent);
 	ActionMenuComp->SetWidgetSpace(EWidgetSpace::Screen);
 	ActionMenuComp->SetVisibility(false);
-	ActionMenuComp->SetDrawAtDesiredSize(true);
+	ActionMenuComp->SetDrawAtDesiredSize(true);*/
 }
 
 void AOperatorBase::OnDeployed(FIntVector2 Location, EDeploymentDirection Direction, int32 InitialLevel)

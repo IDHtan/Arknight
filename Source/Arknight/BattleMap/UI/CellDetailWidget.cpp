@@ -1,12 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../BattleMap/CellDetailWidget.h"
-#include "ResourceCell.h"
+#include "CellDetailWidget.h"
+#include "../Cell/ResourceCell.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
-#include "../Component/HealthComponent.h"
+#include "../../Component/HealthComponent.h"
 
 
 void UCellDetailWidget::UpdateAndShow(AResourceCell* ResourceInfo)

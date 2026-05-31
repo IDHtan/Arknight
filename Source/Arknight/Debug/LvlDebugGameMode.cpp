@@ -1,6 +1,6 @@
 // LvlDebugGameMode.cpp
 
-#include "../Debug/LvlDebugGameMode.h"
+#include "LvlDebugGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "../URougeliteRunSubsystem.h"
 #include "Engine/GameInstance.h"
