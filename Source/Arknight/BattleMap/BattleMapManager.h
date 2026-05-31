@@ -38,9 +38,6 @@ public:
 	ABattleCell* GetCellFromCoordinate(FIntVector2 Coord);
 
 	UFUNCTION(BlueprintCallable, Category = "GridLogic")
-	bool IsCellDeployable(FIntVector2 CellCoord, EOperatorDeployType DeployType);
-
-	UFUNCTION(BlueprintCallable, Category = "GridLogic")
 	void ReplaceCell(FIntVector2 Coord, TSubclassOf<ABattleCell> NewCellClass);
 	
 	ABattleMapManager();

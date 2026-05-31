@@ -13,8 +13,6 @@ class UInputMappingContext;
 class UInputAction;
 class UBattleHUDWidget;
 
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOperatorDeployedSignature, const FOperatorLocalRosterData&, OperatorRD);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOperatorRetreatedSignature, const FOperatorLocalRosterData&, OperatorRD);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCostChangedSignature, int32, NewCost);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOperatorCardClicked, FName, OperatorName);
 /**
@@ -38,21 +36,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	UBattleHUDWidget* HUDWidgetInstance;
-#pragma region Deprecate
-	/*UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnOperatorDeployedSignature OnOperatorDeployed;
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnOperatorRetreatedSignature OnOperatorRetreated;*/
-
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameFlow")
-	bool bIsGamePaused;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameFlow")
-	EGameSpeedState CurrentSpeed;*/
-
-#pragma endregion
-	
 #pragma region Input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* BattleMappingContext;

@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Components/GridPanel.h"
+#include "Components/GridSlot.h"
 #include "Components/Button.h"
 #include "Kismet/KismetTextLibrary.h"
 #include "../../Component/TargetingComponent.h"
@@ -58,22 +59,35 @@ void UOperatorDetailWidget::UpdateAndShow(FName OperatorName)
 		TextAspd->SetText(FText::Format(NSLOCTEXT("UI", "Atk", "攻击速度: {0}"), FText::AsNumber(100.f / OperatorInfo->TargetingComp->AttackSpeed)));
 
 		GridAttackRange->ClearChildren();
-		int32 CenterRow = 3, CenterCol = 3;
+		const int32 CenterRow = 3;
+		const int32 CenterCol = 3;
+		const FMargin GridPadding(5.f);
 		UUserWidget* SelfBlock = CreateWidget<UUserWidget>(this, GridBlockClass);
-		if(SelfBlock)
+		if (SelfBlock)
 		{
 			SelfBlock->SetColorAndOpacity(FLinearColor::White);
-			GridAttackRange->AddChildToGrid(SelfBlock, CenterRow, CenterCol);
+			if (UGridSlot* SelfSlot = GridAttackRange->AddChildToGrid(SelfBlock, CenterRow, CenterCol))
+			{
+				SelfSlot->SetPadding(GridPadding);
+			}
 		}
-		for (auto& Offset : OperatorInfo->TargetingComp->BaseAttackRange)
+		for (const FIntVector2& Offset : OperatorInfo->TargetingComp->BaseAttackRange)
 		{
+			if (Offset == FIntVector2::ZeroValue)
+			{
+				continue;
+			}
+
 			UUserWidget* RangeBlock = CreateWidget<UUserWidget>(this, GridBlockClass);
 			if (RangeBlock)
 			{
 				RangeBlock->SetColorAndOpacity(FLinearColor::Red);
-				int32 TargetRow = CenterRow - Offset.Y;
-				int32 TargetCol = CenterCol + Offset.X;
-				GridAttackRange->AddChildToGrid(RangeBlock, TargetRow, TargetCol);
+				const int32 TargetRow = CenterRow - Offset.Y;
+				const int32 TargetCol = CenterCol + Offset.X;
+				if (UGridSlot* RangeSlot = GridAttackRange->AddChildToGrid(RangeBlock, TargetRow, TargetCol))
+				{
+					RangeSlot->SetPadding(GridPadding);
+				}
 			}
 		}
 	}

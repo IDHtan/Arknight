@@ -47,25 +47,6 @@ ABattleCell* ABattleMapManager::GetCellFromCoordinate(FIntVector2 Coord)
 	return GridMap.Contains(Coord) ? GridMap[Coord] : nullptr;
 }
 
-//this function wont be used, lets see
-bool ABattleMapManager::IsCellDeployable(FIntVector2 CellCoord, EOperatorDeployType DeployType)
-{
-	ABattleCell* Cell = GetCellFromCoordinate(CellCoord);
-	if(!Cell) 	{
-		return false;
-	}
-	switch (DeployType) {
-		case EOperatorDeployType::Melee:
-			return Cell->LogicalCellType == ECellType::DeployableGround;
-		case EOperatorDeployType::Ranged:
-			return Cell->LogicalCellType == ECellType::DeployableHighGround;
-		case EOperatorDeployType::Any:
-			return Cell->LogicalCellType == ECellType::DeployableGround || Cell->LogicalCellType == ECellType::DeployableHighGround;
-		default:
-			return false;
-	}
-}
-
 void ABattleMapManager::ReplaceCell(FIntVector2 Coord, TSubclassOf<ABattleCell> NewCellClass)
 {
 	ABattleCell* OldCell = GetCellFromCoordinate(Coord);
