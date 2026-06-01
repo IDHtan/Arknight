@@ -95,6 +95,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
 	int32 OperatorLevel = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Roster")
+	bool bCanJoinBattle = true;
 };
 
 USTRUCT(BlueprintType)

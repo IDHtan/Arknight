@@ -4,6 +4,7 @@
 #include "ResourceCell.h"
 #include "../../Component/HealthComponent.h"
 #include "../../URougeliteRunSubsystem.h"
+#include "../Controller/BattlePlayerController.h"
 #include "../BattleMapManager.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -36,6 +37,10 @@ void AResourceCell::OnCellDepleted(AActor* Killer)
 		if(URougeliteRunSubsystem* Rougelite = GameInstance->GetSubsystem<URougeliteRunSubsystem>())
 		{
 			Rougelite->AddResource(ResourceType, 1);
+			if (ABattlePlayerController* BattlePC = Cast<ABattlePlayerController>(UGameplayStatics::GetPlayerController(this, 0)))
+			{
+				BattlePC->RecordBattleResourceGain(ResourceType, 1);
+			}
 		}
 	}
 
