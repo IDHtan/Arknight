@@ -2,15 +2,16 @@
 
 
 #include "URougeliteRunSubsystem.h"
+#include "HexMap/Controller/HexMapSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 
 void URougeliteRunSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+	Collection.InitializeDependency(UHexMapSubsystem::StaticClass());
 	Super::Initialize(Collection);
 
 	SaveSlotName = TEXT("MainSaveSlot");
-	PendingBattleLevelID = NAME_None;
-	CurrentAP = 0;
+	MapManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UHexMapSubsystem>() : nullptr;
 
 	LoadGame();
 	CheckOperators();
@@ -27,6 +28,10 @@ void URougeliteRunSubsystem::LoadGame()
 	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, 0)) {
 		USaveGame* LoadedData = UGameplayStatics::LoadGameFromSlot(SaveSlotName, 0);
 		CurrentSaveGame = Cast<URougeliteSaveGame>(LoadedData);
+		if (!CurrentSaveGame)
+		{
+			CurrentSaveGame = Cast<URougeliteSaveGame>(UGameplayStatics::CreateSaveGameObject(URougeliteSaveGame::StaticClass()));
+		}
 		UE_LOG(LogTemp, Warning, TEXT("load success"));
 	}
 	else
@@ -34,6 +39,8 @@ void URougeliteRunSubsystem::LoadGame()
 		CurrentSaveGame = Cast<URougeliteSaveGame>(UGameplayStatics::CreateSaveGameObject(URougeliteSaveGame::StaticClass()));
 		UE_LOG(LogTemp, Warning, TEXT("no save found, create new"));
 	}
+
+	GlobaleResource = CurrentSaveGame ? CurrentSaveGame->GlobalResources : TMap<EResourceType, int32>();
 }
 
 void URougeliteRunSubsystem::SaveGame()
@@ -51,6 +58,12 @@ void URougeliteRunSubsystem::SaveGame()
 
 void URougeliteRunSubsystem::CheckOperators()
 {
+	if (!CurrentSaveGame)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CheckOperators skipped: CurrentSaveGame is null"));
+		return;
+	}
+
 	const URougeliteSettings* Settings = GetDefault<URougeliteSettings>();
 	UDataTable* Table = Settings->OperatorDictTable.LoadSynchronous();
 	if (!Table)
@@ -87,6 +100,12 @@ void URougeliteRunSubsystem::CheckOperators()
 
 void URougeliteRunSubsystem::UpgradeOperator(FName OperatorName)
 {
+	if (!CurrentSaveGame || !CurrentSaveGame->OperatorLevels.Contains(OperatorName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UpgradeOperator failed: %s not found"), *OperatorName.ToString());
+		return;
+	}
+
 	CurrentSaveGame->OperatorLevels[OperatorName]++;
 	FOperatorRosterData* Founded = GlobalRoster.FindByPredicate([OperatorName](const FOperatorRosterData& Data)
 		{
@@ -97,33 +116,38 @@ void URougeliteRunSubsystem::UpgradeOperator(FName OperatorName)
 	}
 }
 
-
-void URougeliteRunSubsystem::PrepareForBattle(FName LevelID)
-{
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		UGameplayStatics::OpenLevel(World, LevelID);
-	}
-}
-
-FName URougeliteRunSubsystem::ConsumePendingBattleID()
-{
-	if(PendingBattleLevelID !=NAME_None)
-	{
-		FName Result = PendingBattleLevelID;
-		PendingBattleLevelID = NAME_None;
-		return Result;
-	}
-	return NAME_None;
-}
-
 void URougeliteRunSubsystem::AddResource(EResourceType Type, int32 Amount)
 {
+	if (Amount <= 0)
+	{
+		return;
+	}
+
+	if (!CurrentSaveGame)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AddResource skipped: CurrentSaveGame is null"));
+		return;
+	}
+
 	CurrentSaveGame->GlobalResources.FindOrAdd(Type) += Amount;
+	GlobaleResource.FindOrAdd(Type) += Amount;
 }
 
-void URougeliteRunSubsystem::ConcludeBattle() //unfinished, just for testing
+void URougeliteRunSubsystem::AddGameResource(EResourceType Type, int32 Amount)
 {
-	
+	if (Amount <= 0)
+	{
+		return;
+	}
+
+	if (!CurrentSaveGame)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AddGameResource skipped: CurrentSaveGame is null"));
+		return;
+	}
+
+	CurrentSaveGame->GlobalResources.FindOrAdd(Type) += Amount;
+	GlobaleResource.FindOrAdd(Type) += Amount;
 }
+
+

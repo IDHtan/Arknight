@@ -2,7 +2,7 @@
 
 #include "LvlDebugGameMode.h"
 #include "Kismet/GameplayStatics.h"
-#include "../URougeliteRunSubsystem.h"
+#include "../HexMap/Controller/HexMapSubsystem.h"
 #include "Engine/GameInstance.h"
 
 void ALvlDebugGameMode::BeginPlay()
@@ -17,10 +17,9 @@ void ALvlDebugGameMode::BeginPlay()
 
 	if (UGameInstance* GI = UGameplayStatics::GetGameInstance(this))
 	{
-		if (URougeliteRunSubsystem* Subsystem = GI->GetSubsystem<URougeliteRunSubsystem>())
+		if (UHexMapSubsystem* Subsystem = GI->GetSubsystem<UHexMapSubsystem>())
 		{
-			Subsystem->PendingBattleLevelID = LevelID;
-			Subsystem->PrepareForBattle(TEXT("Lvl_BattleMap"));
+			Subsystem->PrepareForBattle(LevelID);
 		}
 	}
 

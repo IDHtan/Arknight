@@ -4,7 +4,7 @@
 #include "ExitWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
-#include "../../URougeliteRunSubsystem.h"
+#include "../../HexMap/Controller/HexMapSubsystem.h"
 #include "../Controller/BattlePlayerController.h"
 #include "BattleHUDWidget.h"
 
@@ -27,10 +27,10 @@ void UExitWidget::Open()
 void UExitWidget::OnConfirmClicked()
 {
     UE_LOG(LogTemp, Log, TEXT("Confirm button clicked"));
-	URougeliteRunSubsystem* RunSubsystem = GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>();
-    if (RunSubsystem)
+	UHexMapSubsystem* HexMapSubsystem = GetGameInstance()->GetSubsystem<UHexMapSubsystem>();
+    if (HexMapSubsystem)
     {
-        RunSubsystem->ConcludeBattle();
+        HexMapSubsystem->ConcludeBattle();
     }
 }
 
@@ -38,5 +38,13 @@ void UExitWidget::OnCancelClicked()
 {
     UE_LOG(LogTemp, Log, TEXT("Cancel button clicked"));
     SetVisibility(ESlateVisibility::Collapsed);
-	UGameplayStatics::SetGamePaused(GetWorld(), Cast<ABattlePlayerController>(GetOwningPlayer())->HUDWidgetInstance->bIsGamePaused);
+    ABattlePlayerController* BattlePC = Cast<ABattlePlayerController>(GetOwningPlayer());
+    if (BattlePC && BattlePC->HUDWidgetInstance)
+    {
+        UGameplayStatics::SetGamePaused(GetWorld(), BattlePC->HUDWidgetInstance->bIsGamePaused);
+    }
+    else
+    {
+        UGameplayStatics::SetGamePaused(GetWorld(), false);
+    }
 }

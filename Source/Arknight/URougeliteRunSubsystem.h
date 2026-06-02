@@ -9,6 +9,8 @@
 #include "RougeliteSettings.h"
 #include "URougeliteRunSubsystem.generated.h"
 
+class UHexMapSubsystem;
+
 /**
  * 
  */
@@ -25,14 +27,14 @@ public:
 	FString SaveSlotName = TEXT("MainSaveSlot");
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Flow")
-	FName PendingBattleLevelID;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
-	int32 CurrentAP;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Roster")
 	TArray<FOperatorRosterData> GlobalRoster;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MetaProgression")
+	TMap<EResourceType, int32> GlobaleResource;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "System|Subsystems")
+	UHexMapSubsystem* MapManager = nullptr;
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -53,14 +55,8 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	void PrepareForBattle(FName LevelID);
-
-	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	FName ConsumePendingBattleID();
-
-	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void AddResource(EResourceType Type, int32 Amount);
 
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	void ConcludeBattle();
+	void AddGameResource(EResourceType Type, int32 Amount);
 };

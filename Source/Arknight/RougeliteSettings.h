@@ -20,4 +20,10 @@ public:
 
     UPROPERTY(Config, EditAnywhere, Category = "DataTables")
     TSoftObjectPtr<UDataTable> LevelLayoutTable;
+
+    UPROPERTY(Config, EditAnywhere, Category = "DataTables")
+    TSoftObjectPtr<UDataTable> IconImageTable;
+
+    UPROPERTY(Config, EditAnywhere, Category = "DataTables")
+    TSoftObjectPtr<UDataTable> EventConfigTable;
 };

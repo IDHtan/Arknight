@@ -7,6 +7,8 @@
 
 class AOperatorBase;
 class ABattleCell;
+class UHexEventLogicBase;
+class UTexture2D;
 
 UENUM(BlueprintType)
 enum class ECellType : uint8
@@ -22,10 +24,12 @@ enum class ECellType : uint8
 UENUM(BlueprintType)
 enum class EResourceType : uint8
 {
-	Wood UMETA(DisplayName = "Wood"),
-	Rock UMETA(DisplayName = "Rock"),
-	Metal UMETA(DisplayName = "Metal"),
-	Grain UMETA(DisplayName = "Grain")
+	Wood = 0 UMETA(DisplayName = "Wood"),
+	Rock = 1 UMETA(DisplayName = "Rock"),
+	Grain = 2 UMETA(DisplayName = "Grain"),
+	Metal = 3 UMETA(DisplayName = "Metal"),
+	Food = 4 UMETA(DisplayName = "Food"),
+	HighQualityFood = 5 UMETA(DisplayName = "HighQualityFood")
 };
 
 UENUM(BlueprintType)
@@ -150,6 +154,12 @@ struct FLevelLayoutConfig : public FTableRowBase
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level Config")
+	FName LevelID = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	EHexRegionType TargetRegion = EHexRegionType::Wood;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Level Config")
 	int32 GridX = 0;
 
@@ -161,3 +171,146 @@ public:
 
 };
 
+UENUM(BlueprintType)
+enum class EHexRegionType : uint8
+{
+	Wood UMETA(DisplayName = "Wood"),
+	Rock UMETA(DisplayName = "Rock"),
+	Grain UMETA(DisplayName = "Grain"),
+	Metal UMETA(DisplayName = "Metal")
+};
+
+UENUM(BlueprintType)
+enum class EHexNodeState : uint8
+{
+	Masked UMETA(DisplayName = "Masked"),
+	Unmasked UMETA(DisplayName = "Unmasked"),
+	Reachable UMETA(DisplayName = "Reachable"),
+	Cleared UMETA(DisplayName = "Cleared")
+};
+
+UENUM(BlueprintType)
+enum class EHexNodeType : uint8
+{
+	None UMETA(DisplayName = "None"),
+	Entrance UMETA(DisplayName = "Entrance"),
+	Combat_Normal UMETA(DisplayName = "Combat_Normal"),
+	Combat_Emergency UMETA(DisplayName = "Combat_Emergency"),
+	Event UMETA(DisplayName = "Event"),
+	Reward UMETA(DisplayName = "Reward"),
+	Shop UMETA(DisplayName = "Shop"),
+	Teleport UMETA(DisplayName = "Teleport")
+};
+
+UENUM(BlueprintType)
+enum class EModifierScope : uint8
+{
+	Permanent UMETA(DisplayName = "Permanent"),
+	CurrentRegion UMETA(DisplayName = "CurrentRegion"),
+	NextRegion UMETA(DisplayName = "NextRegion")
+};
+
+USTRUCT(BlueprintType)
+struct FIconImageRow : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Icon Config")
+	FName ResourceType = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Icon Config")
+	TSoftObjectPtr<UTexture2D> IconTexture = nullptr;
+};
+
+USTRUCT(BlueprintType)
+struct FHexNodeData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	FIntVector2 GridCoordinate = FIntVector2::ZeroValue;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	EHexNodeType NodeType = EHexNodeType::Entrance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	EHexNodeState NodeState = EHexNodeState::Masked;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	int32 ContentSeed = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FHexRegionData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	EHexRegionType RegionType = EHexRegionType::Wood;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	TMap<FIntVector2, FHexNodeData> Nodes;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	bool bIsGenerated = false;
+};
+
+USTRUCT(BlueprintType)
+struct FHexNodeTriggerResult
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	EHexNodeType NodeType = EHexNodeType::None;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	FName ContentID = NAME_None;
+};
+
+USTRUCT(BlueprintType)
+struct FHexEventOption
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	FText OptionTitle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	FText OptionDescription;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	bool bIsAvailable = true;
+};
+
+USTRUCT(BlueprintType)
+struct FHexEventConfig : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	FName EventID = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	EHexRegionType TargetRegion = EHexRegionType::Wood;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	int32 MultiStageNumber = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	int32 OptionPerStage = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	TSoftObjectPtr<UTexture2D> EventImage = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	FText EventTitle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	FText EventDescription;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	TArray<FHexEventOption> Options;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	TSubclassOf<UHexEventLogicBase> LogicClass = nullptr;
+};
