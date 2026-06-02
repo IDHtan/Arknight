@@ -161,6 +161,15 @@ public:
 	TSubclassOf<AOperatorBase> OperatorClass = nullptr;
 };
 
+UENUM(BlueprintType)
+enum class EHexRegionType : uint8
+{
+	Wood UMETA(DisplayName = "Wood"),
+	Rock UMETA(DisplayName = "Rock"),
+	Grain UMETA(DisplayName = "Grain"),
+	Metal UMETA(DisplayName = "Metal")
+};
+
 USTRUCT(BlueprintType)
 struct FLevelLayoutConfig : public FTableRowBase
 {
@@ -181,15 +190,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level Config")
 	TArray<TSubclassOf<ABattleCell>> LayoutData;
 
-};
-
-UENUM(BlueprintType)
-enum class EHexRegionType : uint8
-{
-	Wood UMETA(DisplayName = "Wood"),
-	Rock UMETA(DisplayName = "Rock"),
-	Grain UMETA(DisplayName = "Grain"),
-	Metal UMETA(DisplayName = "Metal")
 };
 
 UENUM(BlueprintType)

@@ -125,7 +125,7 @@ void UHexNodeWidget::UpdateVisual()
 		{
 			NodeButton->SetVisibility(ESlateVisibility::Visible);
 
-			FButtonStyle Style = NodeButton->WidgetStyle;
+			FButtonStyle Style = NodeButton->GetStyle();
 			const FSlateColor Transparent = FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.0f));
 			Style.Normal.TintColor = Transparent;
 			Style.Hovered.TintColor = Transparent;

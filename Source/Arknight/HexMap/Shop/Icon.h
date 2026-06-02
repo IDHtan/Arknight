@@ -64,5 +64,5 @@ public:
 	void Update();
 
 	UFUNCTION()
-	void OnIconButtonClicked();
+	void HandleIconButtonClicked();
 };

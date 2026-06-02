@@ -15,10 +15,10 @@ void UIcon::NativeConstruct()
 
 	if (IconButton)
 	{
-		IconButton->OnClicked.AddDynamic(this, &UIcon::OnIconButtonClicked);
+		IconButton->OnClicked.AddDynamic(this, &UIcon::HandleIconButtonClicked);
 
 		// Fully transparent across all states — visual handled by IconImage
-		FButtonStyle Style = IconButton->WidgetStyle;
+		FButtonStyle Style = IconButton->GetStyle();
 		const FSlateColor Transparent = FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.0f));
 		Style.Normal.TintColor = Transparent;
 		Style.Hovered.TintColor = Transparent;
@@ -89,7 +89,7 @@ void UIcon::Update()
 	}
 }
 
-void UIcon::OnIconButtonClicked()
+void UIcon::HandleIconButtonClicked()
 {
 	// Pure click signal — always broadcast, regardless of type binding
 	OnIconButtonClicked.Broadcast();

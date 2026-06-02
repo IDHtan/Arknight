@@ -2,7 +2,7 @@
 
 
 #include "HexMapSubsystem.h"
-#include "RougeliteRunSubsystem.h"
+#include "../../URougeliteRunSubsystem.h"
 #include "../Event/RunModifierBase.h"
 #include "../../RougeliteSettings.h"
 #include "Engine/DataTable.h"
@@ -62,7 +62,7 @@ void UHexMapSubsystem::EnterRegion(EHexRegionType Region)
 		RefreshAllNodeStates();
 	}
 	else{
-		UE_LOG(LogTemp, Error, TEXT("HexMapSubsystem::EnterRegion: Region %s not found in AllRegionsData"), *Region.ToString());
+		UE_LOG(LogTemp, Error, TEXT("HexMapSubsystem::EnterRegion: Region %s not found in AllRegionsData"), *UEnum::GetValueAsString(Region));
 		return;
 	}
 }
@@ -201,7 +201,7 @@ TArray<FIntVector2> UHexMapSubsystem::GetReachableNeighbors(FIntVector2 CenterCo
 		return ReachableCoords;
 	}
 
-	static const TArray<FIntVector2> HexDirections={
+	static const TArray<FIntVector2> HexDirections = {
 		FIntVector2(1, 0),
 		FIntVector2(0, 1),
 		FIntVector2(-1, 1),
@@ -221,31 +221,32 @@ TArray<FIntVector2> UHexMapSubsystem::GetReachableNeighbors(FIntVector2 CenterCo
 	for (const FIntVector2& Direction : HexDirections)
 	{
 		const FIntVector2 Candidate = CenterCoord + Direction;
-		if (Candidate.X >= 0 && Candidate.X < HexRegionSize && 
-			Candidate.Y >= 0 && Candidate.Y < HexRegionSize && 
+		if (Candidate.X >= 0 && Candidate.X < HexRegionSize &&
+			Candidate.Y >= 0 && Candidate.Y < HexRegionSize &&
 			RegionData->Nodes.Contains(Candidate) &&
-			RegionData->Nodes[Candidate].NodeState != EHexNodeState::Cleared	
-		)
+			RegionData->Nodes[Candidate].NodeState != EHexNodeState::Cleared
+			)
 		{
-		if (bNoMovementCost)
+			if (bNoMovementCost)
 			{
 				ReachableCoords.Add(Candidate);
 			}
 			else
 			{
 				const int32 CurrentAP = CurrentHexMapResources.FindRef(EResourceType::AP);
-				if(Direction==FIntVector2(1,0)||Direction==FIntVector2(0,1))
+				if (Direction == FIntVector2(1, 0) || Direction == FIntVector2(0, 1))
 				{
-					if(CurrentAP>=1)
+					if (CurrentAP >= 1)
 						ReachableCoords.Add(Candidate);
 				}
 				else
 				{
-					if(CurrentAP>=3)
+					if (CurrentAP >= 3)
 						ReachableCoords.Add(Candidate);
 				}
 			}
-		}
+		}		
+	}
 	return ReachableCoords;
 }
 

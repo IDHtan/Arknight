@@ -57,7 +57,7 @@ void UShopWidget::OpenShop()
 	if (APButton && (!APButton->bHasLinkedResourceType || APButton->LinkedResourceType != EResourceType::AP))
 	{
 		APButton->SetResourceType(EResourceType::AP);
-		APButton->OnIconClicked.AddDynamic(this, &UShopWidget::OnAPButtonClicked);
+		APButton->OnIconButtonClicked.AddDynamic(this, &UShopWidget::OnAPButtonClicked);
 	}
 
 	for (UIcon* Icon : ResourceButtons)
