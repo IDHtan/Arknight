@@ -17,18 +17,20 @@ class ARKNIGHT_API UHexNodeWidget : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HexData")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HexData")
 	FIntVector2 LogicalCoordinate = FIntVector2::ZeroValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HexData")
+	float HoverScale = 1.15f;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* NodeButton = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* NodeIcon = nullptr;
-
-	UPROPERTY(meta = (BindWidget))
-	UImage* FogImage = nullptr;
 
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Node")
 	void InitWidgetData(const FHexNodeData& Data);

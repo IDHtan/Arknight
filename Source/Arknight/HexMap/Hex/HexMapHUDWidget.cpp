@@ -8,6 +8,11 @@
 #include "Components/CanvasPanel.h"
 #include "Components/TextBlock.h"
 #include "../Controller/HexMapSubsystem.h"
+#include "../Event/EventWidget.h"
+#include "../Shop/ShopWidget.h"
+#include "../Teleport/TeleportWidget.h"
+#include "../Backpack/InventoryWidget.h"
+#include "../Exit/HexExitWidget.h"
 #include "HexNodeWidget.h"
 
 void UHexMapHUDWidget::NativeConstruct()
@@ -104,7 +109,7 @@ void UHexMapHUDWidget::RefreshAllNodesAppearance()
 	}
 }
 
-void UHexMapHUDWidget::OpenEventPanel_Implementation(const FHexEventConfig& Config)
+void UHexMapHUDWidget::OpenEventPanel(const FHexEventConfig& Config)
 {
 	if (!EventPanel)
 	{
@@ -112,19 +117,10 @@ void UHexMapHUDWidget::OpenEventPanel_Implementation(const FHexEventConfig& Conf
 	}
 
 	EventPanel->SetVisibility(ESlateVisibility::Visible);
-
-	if (UFunction* OpenEventFunction = EventPanel->FindFunction(TEXT("OpenEvent")))
-	{
-		struct FOpenEventParams
-		{
-			FHexEventConfig Config;
-		};
-		FOpenEventParams Params{ Config };
-		EventPanel->ProcessEvent(OpenEventFunction, &Params);
-	}
+	EventPanel->OpenEvent(Config);
 }
 
-void UHexMapHUDWidget::OpenShopPanel_Implementation()
+void UHexMapHUDWidget::OpenShopPanel()
 {
 	if (!ShopPanel)
 	{
@@ -132,32 +128,19 @@ void UHexMapHUDWidget::OpenShopPanel_Implementation()
 	}
 
 	ShopPanel->SetVisibility(ESlateVisibility::Visible);
-
-	if (UFunction* OpenShopFunction = ShopPanel->FindFunction(TEXT("OpenShop")))
-	{
-		ShopPanel->ProcessEvent(OpenShopFunction, nullptr);
-	}
+	ShopPanel->OpenShop();
 }
 
-void UHexMapHUDWidget::OpenTeleportPanel_Implementation()
+void UHexMapHUDWidget::OpenTeleportPanel()
 {
 	if (!TeleportPanel)
 	{
 		return;
 	}
 
-	TeleportPanel->SetVisibility(ESlateVisibility::Visible);
-
-	if (UFunction* InitWidgetDataFunction = TeleportPanel->FindFunction(TEXT("InitWidgetData")))
-	{
-		struct FInitTeleportParams
-		{
-			EHexRegionType CurrentRegion;
-		};
-		const EHexRegionType Region = HexMapSubsystemP ? HexMapSubsystemP->CurrentRegion : EHexRegionType::Wood;
-		FInitTeleportParams Params{ Region };
-		TeleportPanel->ProcessEvent(InitWidgetDataFunction, &Params);
-	}
+	const EHexRegionType Region = HexMapSubsystemP ? HexMapSubsystemP->CurrentRegion : EHexRegionType::Wood;
+	TeleportPanel->InitWidgetData(Region);
+	TeleportPanel->SetVisibility(ESlateVisibility::Visible);	
 }
 
 void UHexMapHUDWidget::OnBackpackButtonClicked()
@@ -168,16 +151,7 @@ void UHexMapHUDWidget::OnBackpackButtonClicked()
 	}
 
 	InventoryPanel->SetVisibility(ESlateVisibility::Visible);
-
-	if (UFunction* OpenInventoryFunction = InventoryPanel->FindFunction(TEXT("OpenInventory")))
-	{
-		struct FOpenInventoryParams
-		{
-			bool bInSelectionMode;
-		};
-		FOpenInventoryParams Params{ false };
-		InventoryPanel->ProcessEvent(OpenInventoryFunction, &Params);
-	}
+	InventoryPanel->OpenInventory(false);
 }
 
 void UHexMapHUDWidget::OnExitButtonClicked()
@@ -188,10 +162,5 @@ void UHexMapHUDWidget::OnExitButtonClicked()
 	}
 
 	ExitPanel->SetVisibility(ESlateVisibility::Visible);
-
-	if (UFunction* OpenFunction = ExitPanel->FindFunction(TEXT("Open")))
-	{
-		ExitPanel->ProcessEvent(OpenFunction, nullptr);
-	}
+	ExitPanel->Open();
 }
-

@@ -8,13 +8,12 @@
 #include "Engine/DataTable.h"
 #define HexRegionSize 4
 
-namespace
+void UHexMapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	bool IsInsideRegionBounds(const FIntVector2& Coord)
-	{
-		return Coord.X >= 0 && Coord.X < HexRegionSize && Coord.Y >= 0 && Coord.Y < HexRegionSize;
-	}
+	Super::Initialize(Collection);
+	//we should not call InitializeNewRun here because the umg being called in later function might be not spawned yet, and we need to bind some delegate in umg to the subsystem, which will cause crash if the subsystem is not initialized.
 }
+
 
 void UHexMapSubsystem::InitializeNewRun(int32 Seed)
 {
@@ -37,7 +36,6 @@ void UHexMapSubsystem::InitializeNewRun(int32 Seed)
 	GenerateRegionNodes(EHexRegionType::Rock);
 	GenerateRegionNodes(EHexRegionType::Metal);
 	GenerateRegionNodes(EHexRegionType::Grain);
-	EnterRegion(CurrentRegion);
 }
 
 void UHexMapSubsystem::EnterRegion(EHexRegionType Region)
@@ -479,6 +477,13 @@ void UHexMapSubsystem::PrepareForBattle(FName LevelID)
 	PendingBattleLevelID = LevelID;
 }
 
+FName UHexMapSubsystem::ConsumePendingBattleID()
+{
+	const FName Result = PendingBattleLevelID;
+	PendingBattleLevelID = NAME_None;
+	return Result;
+}
+
 FHexEventConfig UHexMapSubsystem::PrepareForEvent(FName EventID) const
 {
 	const URougeliteSettings* Settings = GetDefault<URougeliteSettings>();
@@ -507,13 +512,59 @@ FHexEventConfig UHexMapSubsystem::PrepareForEvent(FName EventID) const
 
 void UHexMapSubsystem::ConcludeBattle()
 {
-	//unfinished
+	// --- Flow: BattleMap.umap → HexMap.umap ---
+	// Called by ExitWidget when player confirms leaving a battle.
+	// This is the handshake point between BattleMap and HexMap.
+	//
+	// Data propagation chain (single-direction upward):
+	//   CurrentBattleResources → AddHexMapResource() → CurrentHexMapResources
+	//                                                        ↓
+	//                                                  AddGameResource()
+	//                                                        ↓
+	//                                                 CurrentGameResources
+	//                                                        ↓
+	//                                         URougeliteRunSubsystem::AddGameResource()
+	//                                                        ↓
+	//                                              SaveGame.GlobalResources
+	//
+	// State cleanup after settlement:
+	//   - Mark triggered node as Cleared (prevent re-trigger)
+	//   - Clear CurrentBattleResources (battle-level scope ends)
+	//   - Clear PendingBattleLevelID
+	//   - Recalculate AP if needed
+	//
+	// After this, caller (ExitWidget or flow controller) does:
+	//   UGameplayStatics::OpenLevel("HexMap")
+	//
+	// On HexMap.umap reload:
+	//   GameInstance persists → UHexMapSubsystem survives with AllRegionsData intact
+	//   HexMapPlayerController::BeginPlay() → new HUD Widget created
+	//   HexMapHUDWidget::NativeConstruct() → WidgetTree scan → InitWidgetData()
+	//   GetNodeInfo() returns persisted node states → visual state restored
+	//
+	// TODO (future): InitializeNewRun should move to URougeliteRunSubsystem
+	// because AllRegionsData lifecycle transcends HexMap level loads.
+	// URougeliteRunSubsystem already owns GlobalResources and SaveGame;
+	// region/node data belongs at the same persistence tier.
+
 	UE_LOG(LogTemp, Log, TEXT("HexMapSubsystem::ConcludeBattle is not implemented yet."));
 }
 
 void UHexMapSubsystem::ConcludeGame()
 {
-	//unfinished
+	// --- Flow: HexMap run ends → MainMenu / GameOver ---
+	// Triggered when AP reaches 0 or player forfeits the run.
+	//
+	// Settlement order:
+	//   1. Flush remaining CurrentHexMapResources → CurrentGameResources
+	//      (same chain as ConcludeBattle: AddHexMapResource → AddGameResource)
+	//   2. URougeliteRunSubsystem::SaveGame() → persist to save slot
+	//   3. Clean up transient run state (ActiveModifiers, AllRegionsData, etc.)
+	//   4. OpenLevel("MainMenu") or game-over screen
+	//
+	// Note: This does NOT clean up GlobalResources / SaveGame.
+	// Those persist across runs (meta-progression).
+
 	UE_LOG(LogTemp, Log, TEXT("HexMapSubsystem::ConcludeGame is not implemented yet."));
 }
 

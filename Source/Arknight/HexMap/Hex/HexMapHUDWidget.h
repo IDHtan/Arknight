@@ -12,6 +12,11 @@ class UCanvasPanel;
 class UHexMapSubsystem;
 class UHexNodeWidget;
 class UTextBlock;
+class UInventoryWidget;
+class UEventWidget;
+class UShopWidget;
+class UTeleportWidget;
+class UHexExitWidget;
 
 UCLASS()
 class ARKNIGHT_API UHexMapHUDWidget : public UUserWidget
@@ -37,19 +42,19 @@ public:
 	UButton* ExitButton = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* InventoryPanel = nullptr;
+	UInventoryWidget* InventoryPanel = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* EventPanel = nullptr;
+	UEventWidget* EventPanel = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* ShopPanel = nullptr;
+	UShopWidget* ShopPanel = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* TeleportPanel = nullptr;
+	UTeleportWidget* TeleportPanel = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* ExitPanel = nullptr;
+	UHexExitWidget* ExitPanel = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap|HUD")
 	UHexMapSubsystem* HexMapSubsystemP = nullptr;
@@ -63,13 +68,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HexMap|HUD")
 	void RefreshAllNodesAppearance();
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "HexMap|HUD")
+	UFUNCTION(BlueprintCallable, Category = "HexMap|HUD")
 	void OpenEventPanel(const FHexEventConfig& Config);
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "HexMap|HUD")
+	UFUNCTION(BlueprintCallable, Category = "HexMap|HUD")
 	void OpenShopPanel();
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "HexMap|HUD")
+	UFUNCTION(BlueprintCallable, Category = "HexMap|HUD")
 	void OpenTeleportPanel();
 
 	UFUNCTION()
