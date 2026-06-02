@@ -24,6 +24,8 @@ class ARKNIGHT_API UEventWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativeConstruct() override;
+
 	UPROPERTY(meta = (BindWidget))
 	UImage* EventImage;
 

@@ -56,9 +56,6 @@ public:
 
 #pragma region DataRecording
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
-	int32 CurrentAP = 0;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
 	int32 CurrentHexMapConsumedAP = 0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
@@ -67,8 +64,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
 	TMap<EResourceType, int32> CurrentBattleResources;
 
+	//only used to count how much resource gained instead of lost, 
+	//for end-of-run summary. Actual balance is tracked in CurrentGameResources.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
-	TMap<EResourceType, int32> CurrentHexMapResources;
+	TMap<EResourceType, int32> CurrentHexMapResources; 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
 	TMap<EResourceType, int32> CurrentGameResources;
@@ -113,6 +112,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void ConcludeGame();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "RunLogic")
+	int32 GetCurrentAP() const;
 
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void ChangeCurrentAP(int32 APDelta);

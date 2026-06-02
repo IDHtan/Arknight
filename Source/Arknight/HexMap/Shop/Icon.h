@@ -11,10 +11,21 @@ class UButton;
 class UImage;
 class UTextBlock;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnIconClickedSignature, EResourceType, ResourceType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnIconButtonClickedSignature);
+
 /**
  * Shared icon widget used by both Shop and Backpack systems.
- * Displays an icon from IconImageTable and optionally binds a resource type
- * for business logic (shop transactions, backpack selection).
+ * Displays an icon from IconImageTable for a given resource type.
+ *
+ * Two usage modes:
+ *  1) Editor: set LinkedResourceType + bHasLinkedResourceType in Details panel.
+ *     NativeConstruct auto-loads the icon.
+ *  2) Dynamic: call SetResourceType(Type) after creation.
+ *
+ * When clicked, broadcasts OnIconClicked with the LinkedResourceType.
+ * The owning panel binds to this delegate and handles its own logic.
+ * The Icon itself contains zero business logic.
  */
 UCLASS()
 class ARKNIGHT_API UIcon : public UUserWidget
@@ -22,6 +33,14 @@ class ARKNIGHT_API UIcon : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativeConstruct() override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Icon|Events")
+	FOnIconClickedSignature OnIconClicked;
+
+	UPROPERTY(BlueprintAssignable, Category = "Icon|Events")
+	FOnIconButtonClickedSignature OnIconButtonClicked;
+
 	UPROPERTY(meta = (BindWidget))
 	UButton* IconButton;
 
@@ -31,19 +50,19 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* NameText;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName IconRowName;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icon")
 	bool bHasLinkedResourceType = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icon")
 	EResourceType LinkedResourceType;
 
 public:
-	UFUNCTION(BlueprintCallable)
-	void SetIconByRowName(FName RowName);
+	UFUNCTION(BlueprintCallable, Category = "Icon")
+	void SetResourceType(EResourceType Type);
 
-	UFUNCTION(BlueprintCallable)
-	void BindResourceType(EResourceType Type, FName RowName);
+	UFUNCTION(BlueprintCallable, Category = "Icon")
+	void Update();
+
+	UFUNCTION()
+	void OnIconButtonClicked();
 };

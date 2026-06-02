@@ -29,8 +29,20 @@ enum class EResourceType : uint8
 	Grain = 2 UMETA(DisplayName = "Grain"),
 	Metal = 3 UMETA(DisplayName = "Metal"),
 	Food = 4 UMETA(DisplayName = "Food"),
-	HighQualityFood = 5 UMETA(DisplayName = "HighQualityFood")
+	HighQualityFood = 5 UMETA(DisplayName = "HighQualityFood"),
+	AP = 6 UMETA(DisplayName = "AP")
 };
+
+// Behavior tags for EResourceType — single source of truth for per-type branching.
+// Each system queries the tag it needs instead of hardcoding if (Type != AP) everywhere.
+namespace EResourceTypeMeta
+{
+	// Can be held and displayed in the backpack inventory
+	inline bool IsStorable(EResourceType Type) { return Type != EResourceType::AP; }
+
+	// Can be spent as cost in shop transactions (pay this to get something else)
+	inline bool IsTradeableAsCost(EResourceType Type) { return Type != EResourceType::AP; }
+}
 
 UENUM(BlueprintType)
 enum class EOperatorDeployType : uint8

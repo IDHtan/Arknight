@@ -10,10 +10,12 @@
 class UButton;
 class UTextBlock;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOptionSelectedSignature, int32, OptionIndex);
+
 /**
  * Single clickable option widget inside the event panel.
  * Displays title and description for one event option.
- * On click, notifies the parent UEventWidget (no core logic contained here).
+ * On click, broadcasts OnOptionSelected with its index — zero business logic.
  */
 UCLASS()
 class ARKNIGHT_API UEventOptionWidget : public UUserWidget
@@ -21,6 +23,11 @@ class ARKNIGHT_API UEventOptionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativeConstruct() override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Event|Option")
+	FOnOptionSelectedSignature OnOptionSelected;
+
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TitleText;
 
@@ -34,7 +41,7 @@ public:
 	int32 OptionIndex = -1;
 
 public:
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Event|Option")
 	void InitOption(const FHexEventOption& OptionData, int32 Index);
 
 	UFUNCTION()

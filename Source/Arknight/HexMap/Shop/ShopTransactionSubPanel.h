@@ -8,18 +8,22 @@
 #include "ShopTransactionSubPanel.generated.h"
 
 class UButton;
-class UImage;
+class UIcon;
 class UEditableTextBox;
+class UTextBlock;
+class UHexMapSubsystem;
 
 /**
- * Trade confirmation panel (secondary interface within Shop).
- * Shows the exchange formula, allows the player to input quantity,
- * and completes the transaction via backpack deduction and resource delivery.
+ * Trade confirmation panel (secondary panel).
+ *
+ * CostIcon and TargetIcon are pre-created UIcon widgets in UMG
+ * with bHasLinkedResourceType=false. Their types are dynamically
+ * assigned via SetResourceType() when ShowTransaction / ShowAPTransaction is called.
  *
  * Fixed exchange formulas:
- *   1. Basic resource trade: current-region main resource 1:1 for any other basic resource.
- *   2. Rare resource trade: 10x main resource (non-Grain) = 1 AP;
- *      15x other resource (non-Grain) = 1 AP;
+ *   1. Basic: region main resource 1:1 for any other basic resource.
+ *   2. Rare: 10x non-Grain main resource = 1 AP.
+ *      15x other non-Grain = 1 AP.
  *      15x Grain = 1 HighQualityFood.
  */
 UCLASS()
@@ -28,6 +32,8 @@ class ARKNIGHT_API UShopTransactionSubPanel : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativeConstruct() override;
+
 	UPROPERTY(meta = (BindWidget))
 	UButton* ConfirmButton;
 
@@ -35,16 +41,16 @@ public:
 	UButton* ExitButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* CostResourceHitBox;
+	UIcon* CostIcon;
 
 	UPROPERTY(meta = (BindWidget))
-	UImage* CostResourceImage;
-
-	UPROPERTY(meta = (BindWidget))
-	UImage* TargetResourceImage;
+	UIcon* TargetIcon;
 
 	UPROPERTY(meta = (BindWidget))
 	UEditableTextBox* InputQuantityBox;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* OutputQuantityText;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bHasCurrentCostType = false;
@@ -53,22 +59,22 @@ public:
 	EResourceType CurrentCostType;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bHasCurrentTargetType = false;
+	EResourceType CurrentTargetType;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EResourceType CurrentTargetType;
+	int32 CurrentExchangeRate = 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bTargetIsAP = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName CurrentCostIconRowName;
+	int32 InputQuantity=0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName CurrentTargetIconRowName;
+	int32 OutputQuantity=0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float CurrentExchangeRate = 1.0f;
+	UHexMapSubsystem* HexMapSubsystemP;
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -81,11 +87,18 @@ public:
 	void OnExitButtonClicked();
 
 	UFUNCTION(BlueprintCallable)
-	void OnHitBoxClicked();
-
-	UFUNCTION(BlueprintCallable)
 	void RequestBackpackSelection();
 
 	UFUNCTION()
+	void OnBackpackResourceSelected(EResourceType Type);
+
+	UFUNCTION()
+	void OnInputQuantityChanged(const FText& Text);
+
+	UFUNCTION()
 	void OnConfirmClicked();
+
+private:
+	// Map region type to its primary resource for cost calculation
+	static EResourceType GetRegionResource(EHexRegionType Region);
 };

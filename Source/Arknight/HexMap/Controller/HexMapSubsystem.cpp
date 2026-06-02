@@ -25,7 +25,6 @@ void UHexMapSubsystem::InitializeNewRun(int32 Seed)
 	PendingBattleLevelID = NAME_None;
 	LastEventID = NAME_None;
 	LastBattleID = NAME_None;
-	CurrentAP = 0;
 	CurrentHexMapConsumedAP = 0;
 	CurrentGameConsumedAP = 0;
 	CurrentBattleResources.Empty();
@@ -228,23 +227,25 @@ TArray<FIntVector2> UHexMapSubsystem::GetReachableNeighbors(FIntVector2 CenterCo
 			RegionData->Nodes[Candidate].NodeState != EHexNodeState::Cleared	
 		)
 		{
-			if (bNoMovementCost)
+		if (bNoMovementCost)
 			{
 				ReachableCoords.Add(Candidate);
 			}
-			else if(Direction==FIntVector2(1,0)||Direction==FIntVector2(0,1))
-			{
-				if(CurrentAP>=1)
-					ReachableCoords.Add(Candidate);
-			}
 			else
 			{
-				if(CurrentAP>=3)
-					ReachableCoords.Add(Candidate);
+				const int32 CurrentAP = CurrentHexMapResources.FindRef(EResourceType::AP);
+				if(Direction==FIntVector2(1,0)||Direction==FIntVector2(0,1))
+				{
+					if(CurrentAP>=1)
+						ReachableCoords.Add(Candidate);
+				}
+				else
+				{
+					if(CurrentAP>=3)
+						ReachableCoords.Add(Candidate);
+				}
 			}
 		}
-	}
-
 	return ReachableCoords;
 }
 
@@ -568,9 +569,14 @@ void UHexMapSubsystem::ConcludeGame()
 	UE_LOG(LogTemp, Log, TEXT("HexMapSubsystem::ConcludeGame is not implemented yet."));
 }
 
+int32 UHexMapSubsystem::GetCurrentAP() const
+{
+	return CurrentHexMapResources.FindRef(EResourceType::AP);
+}
 void UHexMapSubsystem::ChangeCurrentAP(int32 APDelta)
 {
-	CurrentAP += APDelta;
+	int32& APRef = CurrentHexMapResources.FindOrAdd(EResourceType::AP);
+	APRef += APDelta;
 	if (APDelta < 0)
 	{
 		const int32 ConsumedAP = FMath::Abs(APDelta);
@@ -578,11 +584,11 @@ void UHexMapSubsystem::ChangeCurrentAP(int32 APDelta)
 		CurrentGameConsumedAP += ConsumedAP;
 	}
 
-	OnAPChanged.Broadcast(CurrentAP);
+	OnAPChanged.Broadcast(APRef);
 
-	if(CurrentAP<=0)
+	if(APRef<=0)
 	{
-		CurrentAP=0;
+		APRef=0;
 		ConcludeGame();
 	}
 }
@@ -590,18 +596,13 @@ void UHexMapSubsystem::ChangeCurrentAP(int32 APDelta)
 void UHexMapSubsystem::AddBattleResource(EResourceType Type, int32 Amount)
 {
 	CurrentBattleResources.FindOrAdd(Type) += Amount;
-	if(CurrentBattleResources[Type]<=0)
-	{
-		CurrentBattleResources.Remove(Type);
-	}
 }
 
 void UHexMapSubsystem::AddHexMapResource(EResourceType Type, int32 Amount)
 {
-	CurrentHexMapResources.FindOrAdd(Type) += Amount;
-	if(CurrentHexMapResources[Type]<=0)
+	if(Amount>0)
 	{
-		CurrentHexMapResources.Remove(Type);
+		CurrentHexMapResources.FindOrAdd(Type) += Amount;
 	}
 	AddGameResource(Type, Amount);
 }
@@ -609,11 +610,6 @@ void UHexMapSubsystem::AddHexMapResource(EResourceType Type, int32 Amount)
 void UHexMapSubsystem::AddGameResource(EResourceType Type, int32 Amount)
 {
 	CurrentGameResources.FindOrAdd(Type) += Amount;
-	if(CurrentGameResources[Type]<=0)
-	{
-		CurrentGameResources.Remove(Type);
-	}
-
 	if(URougeliteRunSubsystem* RunSubsystem=GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>())
 	{
 		RunSubsystem->AddGameResource(Type, Amount);

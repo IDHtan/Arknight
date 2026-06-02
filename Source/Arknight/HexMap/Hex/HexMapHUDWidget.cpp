@@ -70,7 +70,7 @@ void UHexMapHUDWidget::NativeConstruct()
 			NodeWidget->InitWidgetData(HexMapSubsystemP->GetNodeInfo(NodeWidget->LogicalCoordinate));
 		}
 
-		UpdateCurrentAP(HexMapSubsystemP->CurrentAP);
+		UpdateCurrentAP(HexMapSubsystemP->GetCurrentAP());
 	}
 
 	if (OpenBackpackButton)
