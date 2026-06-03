@@ -27,7 +27,6 @@ void UHexMapSubsystem::InitializeNewRun(int32 Seed)
 	LastBattleID = NAME_None;
 	CurrentHexMapConsumedAP = 0;
 	CurrentGameConsumedAP = 0;
-	CurrentBattleResources.Empty();
 	CurrentHexMapResources.Empty();
 	CurrentGameResources.Empty();
 
@@ -489,15 +488,43 @@ FName UHexMapSubsystem::PickContentIDFromCandidates(const TArray<FName>& Candida
 	return FilteredCandidateIDs[PickIndex];
 }
 
-void UHexMapSubsystem::PrepareForBattle(FName LevelID)
+FName UHexMapSubsystem::GetRandomBattleLevelID(EHexNodeType NodeType) const
+{
+	// --- Responsibility ---
+	// Called by UHexEventLogicBase subclasses to pick a random combat level
+	// from the current region's candidate pool. Used by events that trigger
+	// combat without going through a normal Combat node on the hex map
+	//
+	// Flow:
+	//   BuildBattleCandidateIDs(NodeType) → filtered candidates for CurrentRegion
+	//   PickContentIDFromCandidates(candidates, seed, LastBattleID)
+	//     → excludes LastBattleID to avoid immediate repeats
+	//     → uses ContentSeed + FMath::Rand() for deterministic randomness
+	//   Caller then: Map->PrepareForBattle(ID) + UGameplayStatics::OpenLevel
+	//
+	// Returns NAME_None if the candidate pool is empty.
+
+	const TArray<FName> Candidates = BuildBattleCandidateIDs(NodeType);
+	if (Candidates.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HexMapSubsystem::GetRandomBattleLevelID: no candidates for NodeType %s in region %s"),
+			*UEnum::GetValueAsString(NodeType), *UEnum::GetValueAsString(CurrentRegion));
+		return NAME_None;
+	}
+
+	const int32 Seed = MasterSeed + static_cast<int32>(NodeType) + CurrentHexMapConsumedAP;
+	return PickContentIDFromCandidates(Candidates, Seed, LastBattleID);
+}
+
+void UHexMapSubsystem::PrepareForBattle(FName LevelID, EHexNodeType NodeType)
 {
 	if (LevelID.IsNone())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PrepareForBattle failed: LevelID is None"));
 		return;
 	}
-	CurrentBattleResources.Empty();
 	PendingBattleLevelID = LevelID;
+	PendingBattleType = NodeType;
 }
 
 FName UHexMapSubsystem::ConsumePendingBattleID()
@@ -535,42 +562,9 @@ FHexEventConfig UHexMapSubsystem::PrepareForEvent(FName EventID) const
 
 void UHexMapSubsystem::ConcludeBattle()
 {
-	// --- Flow: BattleMap.umap → HexMap.umap ---
-	// Called by ExitWidget when player confirms leaving a battle.
-	// This is the handshake point between BattleMap and HexMap.
-	//
-	// Data propagation chain (single-direction upward):
-	//   CurrentBattleResources → AddHexMapResource() → CurrentHexMapResources
-	//                                                        ↓
-	//                                                  AddGameResource()
-	//                                                        ↓
-	//                                                 CurrentGameResources
-	//                                                        ↓
-	//                                         URougeliteRunSubsystem::AddGameResource()
-	//                                                        ↓
-	//                                              SaveGame.GlobalResources
-	//
-	// State cleanup after settlement:
-	//   - Mark triggered node as Cleared (prevent re-trigger)
-	//   - Clear CurrentBattleResources (battle-level scope ends)
-	//   - Clear PendingBattleLevelID
-	//   - Recalculate AP if needed
-	//
-	// After this, caller (ExitWidget or flow controller) does:
-	//   UGameplayStatics::OpenLevel("HexMap")
-	//
-	// On HexMap.umap reload:
-	//   GameInstance persists → UHexMapSubsystem survives with AllRegionsData intact
-	//   HexMapPlayerController::BeginPlay() → new HUD Widget created
-	//   HexMapHUDWidget::NativeConstruct() → WidgetTree scan → InitWidgetData()
-	//   GetNodeInfo() returns persisted node states → visual state restored
-	//
-	// TODO (future): InitializeNewRun should move to URougeliteRunSubsystem
-	// because AllRegionsData lifecycle transcends HexMap level loads.
-	// URougeliteRunSubsystem already owns GlobalResources and SaveGame;
-	// region/node data belongs at the same persistence tier.
-
-	UE_LOG(LogTemp, Log, TEXT("HexMapSubsystem::ConcludeBattle is not implemented yet."));
+	// Battle settlement logic moved to ABattleGameMode::ConcludeBattle().
+	// See Docs/BattleMapFlow.md for the full data-flow design.
+	UE_LOG(LogTemp, Log, TEXT("HexMapSubsystem::ConcludeBattle stub — real logic is in ABattleGameMode"));
 }
 
 void UHexMapSubsystem::ConcludeGame()
@@ -613,11 +607,6 @@ void UHexMapSubsystem::ChangeCurrentAP(int32 APDelta)
 		APRef=0;
 		ConcludeGame();
 	}
-}
-
-void UHexMapSubsystem::AddBattleResource(EResourceType Type, int32 Amount)
-{
-	CurrentBattleResources.FindOrAdd(Type) += Amount;
 }
 
 void UHexMapSubsystem::AddHexMapResource(EResourceType Type, int32 Amount)

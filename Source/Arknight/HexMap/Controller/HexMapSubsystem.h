@@ -52,6 +52,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Flow")
 	FName PendingBattleLevelID = NAME_None;
+
+	// Combat type of the upcoming battle — read by BattleGameMode to determine timer behavior
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Flow")
+	EHexNodeType PendingBattleType = EHexNodeType::Combat_Normal;
 #pragma endregion
 
 #pragma region DataRecording
@@ -61,11 +65,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
 	int32 CurrentGameConsumedAP = 0;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
-	TMap<EResourceType, int32> CurrentBattleResources;
-
 	//only used to count how much resource gained instead of lost, 
-	//for end-of-run summary. Actual balance is tracked in CurrentGameResources.
+	//for end-of-map summary. Actual balance is tracked in CurrentGameResources.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
 	TMap<EResourceType, int32> CurrentHexMapResources; 
 
@@ -83,6 +84,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Region")
 	void EnterRegion(EHexRegionType Region);
 
+#pragma region NodeState
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "HexMap|Query")
 	FHexNodeData GetNodeInfo(FIntVector2 Coord) const;
 
@@ -98,25 +100,41 @@ public:
 	// Reveal all Masked nodes in current region (used by events like "搜")
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Region")
 	void RevealAllRegionNodes();
+#pragma endregion
+
+#pragma region NodeContentFlow
+	// Pick a random battle level from the candidate pool for the given node type.
+	// Used by event logic subclasses that trigger combat 
+	// Calls BuildBattleCandidateIDs internally, filters out LastBattleID to avoid repeats,
+	// then uses ContentSeed + FMath::Rand() for deterministic randomness.
+	UFUNCTION(BlueprintCallable, Category = "HexMap|Flow")
+	FName GetRandomBattleLevelID(EHexNodeType NodeType) const;
 
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Flow")
 	FHexNodeTriggerResult TriggerNodeContent(FIntVector2 TargetCoord);
 
+	// LevelID = which battle map to load; NodeType = Combat_Normal or Combat_Emergency
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	void PrepareForBattle(FName LevelID);
+	void PrepareForBattle(FName LevelID, EHexNodeType NodeType);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "RunLogic")
 	FHexEventConfig PrepareForEvent(FName EventID) const;
+#pragma endregion
 
+#pragma region InterlevelFlow
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	FName ConsumePendingBattleID();
 
+	// Battle settlement is now handled by ABattleGameMode::ConcludeBattle().
+	// This stub remains for compatibility; logic was moved to BattleMap for tighter resource/timer control.
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void ConcludeBattle();
 
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void ConcludeGame();
+#pragma endregion
 
+#pragma region Economy
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "RunLogic")
 	int32 GetCurrentAP() const;
 
@@ -124,19 +142,19 @@ public:
 	void ChangeCurrentAP(int32 APDelta);
 
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	void AddBattleResource(EResourceType Type, int32 Amount);
-
-	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void AddHexMapResource(EResourceType Type, int32 Amount);
 
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void AddGameResource(EResourceType Type, int32 Amount);
+#pragma endregion
 
+#pragma region Modifier
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Modifier")
 	void AddModifierInstance(URunModifierBase* NewModifier);
 
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Modifier")
 	void ProcessRegionEndModifiers();
+#pragma endregion
 
 private:
 	TArray<FName> BuildBattleCandidateIDs(EHexNodeType NodeType) const;

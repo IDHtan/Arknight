@@ -63,7 +63,7 @@ void AHexMapPlayerController::HandleNodeClicked(FIntVector2 Coordinate)
 	{
 	case EHexNodeType::Combat_Normal:
 	case EHexNodeType::Combat_Emergency:
-		HexMapSubsystemP->PrepareForBattle(TriggerResult.ContentID);
+		HexMapSubsystemP->PrepareForBattle(TriggerResult.ContentID, TriggerResult.NodeType);
 		UGameplayStatics::OpenLevel(this, TEXT("Lvl_BattleMap"));
 		break;
 	case EHexNodeType::Event:
