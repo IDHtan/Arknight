@@ -309,16 +309,16 @@ public:
 	int32 MultiStageNumber = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
-	int32 OptionPerStage = 0;
+	TArray<int32> OptionPerStage = TArray<int32>();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
 	TSoftObjectPtr<UTexture2D> EventImage = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
-	FText EventTitle;
+	TArray<FText> EventTitle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
-	FText EventDescription;
+	TArray<FText> EventDescription;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
 	TArray<FHexEventOption> Options;

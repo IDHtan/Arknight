@@ -95,6 +95,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Region")
 	void RefreshAllNodeStates();
 
+	// Reveal all Masked nodes in current region (used by events like "搜")
+	UFUNCTION(BlueprintCallable, Category = "HexMap|Region")
+	void RevealAllRegionNodes();
+
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Flow")
 	FHexNodeTriggerResult TriggerNodeContent(FIntVector2 TargetCoord);
 

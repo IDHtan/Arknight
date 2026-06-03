@@ -15,8 +15,14 @@ class UHexEventLogicBase;
 
 /**
  * Event panel — renders the full event screen from FHexEventConfig.
- * Dynamically creates UEventOptionWidget instances for each option.
- * Handles player selection by forwarding to UHexEventLogicBase.
+ *
+ * Supports single-stage and multi-stage events:
+ *   Single (MultiStageNumber == 0): all options shown at once.
+ *   Multi  (MultiStageNumber >  0): options shown per stage via ShowStage().
+ *
+ * OpenEvent() loads data + initializes logic + displays stage 0.
+ * HandleOptionSelected() forwards to logic via ExecuteOption(),
+ * then auto-advances to next stage or closes the panel.
  */
 UCLASS()
 class ARKNIGHT_API UEventWidget : public UUserWidget
@@ -44,10 +50,25 @@ public:
 	UPROPERTY(Transient)
 	UHexEventLogicBase* ActiveLogicInstance;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Event|State")
+	FHexEventConfig CachedConfig;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Event|State")
+	int32 CurrentStage = 0;
+
 public:
-	UFUNCTION(BlueprintCallable)
+	// Load event data, init logic, display first stage
+	UFUNCTION(BlueprintCallable, Category = "Event")
 	void OpenEvent(const FHexEventConfig& Config);
 
-	UFUNCTION(BlueprintCallable)
+	// Display options for a specific stage (internal, called by HandleOptionSelected)
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void ShowStage(int32 StageIndex);
+
+	// Called when player clicks an option; auto-advances or closes
+	UFUNCTION(BlueprintCallable, Category = "Event")
 	void HandleOptionSelected(int32 OptionIndex);
+
+private:
+	int32 GetTotalStages() const;
 };

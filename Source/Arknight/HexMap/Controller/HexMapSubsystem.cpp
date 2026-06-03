@@ -333,6 +333,27 @@ void UHexMapSubsystem::RefreshAllNodeStates()
 	OnHexNodeStatesRefreshed.Broadcast();
 }
 
+void UHexMapSubsystem::RevealAllRegionNodes()
+{
+	FHexRegionData* RegionData = AllRegionsData.Find(CurrentRegion);
+	if (!RegionData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HexMapSubsystem::RevealAllRegionNodes: CurrentRegion %s not found"), *UEnum::GetValueAsString(CurrentRegion));
+		return;
+	}
+
+	for (TPair<FIntVector2, FHexNodeData>& Pair : RegionData->Nodes)
+	{
+		if (Pair.Value.NodeState == EHexNodeState::Masked)
+		{
+			Pair.Value.NodeState = EHexNodeState::Unmasked;
+		}
+	}
+
+	// Recalculate reachable neighbors to reflect the newly revealed nodes
+	RefreshAllNodeStates();
+}
+
 FHexNodeTriggerResult UHexMapSubsystem::TriggerNodeContent(FIntVector2 TargetCoord)
 {
 	FHexNodeTriggerResult Result;
