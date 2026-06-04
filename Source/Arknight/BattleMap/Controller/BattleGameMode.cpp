@@ -10,6 +10,7 @@
 #include "../UI/SettlementWidget.h"
 #include "../../HexMap/Controller/HexMapSubsystem.h"
 #include "../../HexMap/Event/RunModifierBase.h"
+#include "../../URougeliteRunSubsystem.h"
 
 ABattleGameMode::ABattleGameMode()
 {
@@ -153,7 +154,27 @@ void ABattleGameMode::ConcludeBattle()
 		}
 	}
 
-	// --- 3. Show settlement widget (reads multiplied CurrentBattleResources) ---
+	// --- 3. Level up operators who participated ---
+	// Normal +1, Emergency +2, level cap at 8
+	if (URougeliteRunSubsystem* Run = GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>())
+	{
+		const int32 LevelsGained = (CurrentBattleType == EHexNodeType::Combat_Emergency) ? 2 : 1;
+		for (FOperatorRosterData& Op : Run->GlobalRoster)
+		{
+			if (!Op.bCanJoinBattle) continue;
+
+			const int32 NewLevel = FMath::Min(Op.OperatorLevel + LevelsGained, 8);
+			Op.OperatorLevel = NewLevel;
+
+			// Persist to save
+			if (Run->CurrentSaveGame)
+			{
+				Run->CurrentSaveGame->OperatorLevels.FindOrAdd(Op.OperatorName) = NewLevel;
+			}
+		}
+	}
+
+	// --- 4. Show settlement widget (reads multiplied CurrentBattleResources) ---
 	if (SettlementWidgetClass)
 	{
 		USettlementWidget* Widget = CreateWidget<USettlementWidget>(GetWorld(), SettlementWidgetClass);

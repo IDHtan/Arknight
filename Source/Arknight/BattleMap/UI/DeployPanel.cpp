@@ -73,9 +73,8 @@ void UDeployWidget::OnShow(FName OpName, ADeployableCell* DeployableCell)
 			ImageAvatar->SetBrushFromTexture(DefaultOperator->AvatarImage);
 			ImageAvatar->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
-		UE_LOG(LogTemp, Log, TEXT("Set brush right"));
 	}
-	UE_LOG(LogTemp, Log, TEXT("Show Deploy Panel function done"));
+
 	SetVisibility(ESlateVisibility::Visible);
 }
 
