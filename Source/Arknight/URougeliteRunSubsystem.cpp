@@ -40,7 +40,7 @@ void URougeliteRunSubsystem::LoadGame()
 		UE_LOG(LogTemp, Warning, TEXT("no save found, create new"));
 	}
 
-	GlobaleResource = CurrentSaveGame ? CurrentSaveGame->GlobalResources : TMap<EResourceType, int32>();
+	GlobalResource = CurrentSaveGame ? CurrentSaveGame->GlobalResources : TMap<EResourceType, int32>();
 }
 
 void URougeliteRunSubsystem::SaveGame()
@@ -161,7 +161,7 @@ void URougeliteRunSubsystem::AddResource(EResourceType Type, int32 Amount)
 	}
 
 	CurrentSaveGame->GlobalResources.FindOrAdd(Type) += Amount;
-	GlobaleResource.FindOrAdd(Type) += Amount;
+	GlobalResource.FindOrAdd(Type) += Amount;
 }
 
 void URougeliteRunSubsystem::AddGameResource(EResourceType Type, int32 Amount)

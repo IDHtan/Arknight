@@ -241,7 +241,7 @@ struct FIconImageRow : public FTableRowBase
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Icon Config")
-	FName ResourceType = NAME_None;
+	FName IconName = NAME_None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Icon Config")
 	TSoftObjectPtr<UTexture2D> IconTexture = nullptr;

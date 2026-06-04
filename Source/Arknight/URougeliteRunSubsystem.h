@@ -31,7 +31,7 @@ public:
 	TArray<FOperatorRosterData> GlobalRoster;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MetaProgression")
-	TMap<EResourceType, int32> GlobaleResource;
+	TMap<EResourceType, int32> GlobalResource;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "System|Subsystems")
 	UHexMapSubsystem* MapManager = nullptr;

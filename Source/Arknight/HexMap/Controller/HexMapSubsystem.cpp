@@ -41,7 +41,7 @@ void UHexMapSubsystem::InitializeNewRun(int32 Seed)
 	if (URougeliteRunSubsystem* Run = GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>())
 	{
 		CurrentGameResources.Add(EResourceType::AP,
-			Run->GlobaleResource.FindRef(EResourceType::AP));
+			Run->GlobalResource.FindRef(EResourceType::AP));
 	}
 
 	GenerateRegionNodes(EHexRegionType::Wood);

@@ -13,10 +13,6 @@ void AHexMapPlayerController::BeginPlay()
 
 	bShowMouseCursor = true;
 
-	FInputModeGameAndUI InputMode;
-	InputMode.SetHideCursorDuringCapture(false);
-	SetInputMode(InputMode);
-
 	HexMapSubsystemP = GetGameInstance() ? GetGameInstance()->GetSubsystem<UHexMapSubsystem>() : nullptr;
 	if (!HexMapSubsystemP)
 	{
@@ -29,12 +25,15 @@ void AHexMapPlayerController::BeginPlay()
 		if (MapWidgetInstance)
 		{
 			MapWidgetInstance->AddToViewport();
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(MapWidgetInstance->TakeWidget());
+			SetInputMode(InputMode);
 		}
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HexMapPlayerController has no MapWidgetClass assigned."));
-	}
+	}	
 }
 
 void AHexMapPlayerController::HandleNodeClicked(FIntVector2 Coordinate)
