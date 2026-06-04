@@ -4,8 +4,8 @@
 #include "ExitWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
-#include "../../HexMap/Controller/HexMapSubsystem.h"
 #include "../Controller/BattlePlayerController.h"
+#include "../Controller/BattleGameMode.h"
 #include "BattleHUDWidget.h"
 
 void UExitWidget::NativeConstruct()
@@ -26,12 +26,19 @@ void UExitWidget::Open()
 
 void UExitWidget::OnConfirmClicked()
 {
-    UE_LOG(LogTemp, Log, TEXT("Confirm button clicked"));
-	UHexMapSubsystem* HexMapSubsystem = GetGameInstance()->GetSubsystem<UHexMapSubsystem>();
-    if (HexMapSubsystem)
-    {
-        HexMapSubsystem->ConcludeBattle();
-    }
+	UE_LOG(LogTemp, Log, TEXT("Confirm button clicked"));
+
+	ABattleGameMode* GM = Cast<ABattleGameMode>(GetWorld()->GetAuthGameMode());
+	if (GM)
+	{
+		GM->ConcludeBattle();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UExitWidget::OnConfirmClicked: BattleGameMode not found!"));
+	}
+
+	SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UExitWidget::OnCancelClicked()

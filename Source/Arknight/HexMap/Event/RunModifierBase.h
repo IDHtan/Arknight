@@ -27,8 +27,11 @@ public:
 	//[我要存钱]禁止获得原石
 	virtual bool QueryBanResourceAcquisition(EResourceType Type) const { return false; }
 		
-	//[我要存钱]资源获得倍率/[强袭]紧急三倍
-	virtual float QueryResourceGainMultiplier(EResourceType Type, float OriginalAmount) const { return OriginalAmount; }
+	// 资源获得倍率（对所有资源类型生效）
+	// Emergency combat applies ×2 before modifier queries.
+	// 强袭 x1.5 makes it to x3; default implementation returns Amount unchanged.
+	//and there is another modifier with x2, the final multiplier may be x6.
+	virtual int32 QueryResourceGainMultiplier(int32 Amount) const { return Amount; }
 
 	//[驰援险地]跨区域时触发
 	virtual void ExecuteDelayedResourceReward(URougeliteRunSubsystem* RunSubsystem) {}

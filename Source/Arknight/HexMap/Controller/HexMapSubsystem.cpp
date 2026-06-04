@@ -246,6 +246,15 @@ TArray<FIntVector2> UHexMapSubsystem::GetReachableNeighbors(FIntVector2 CenterCo
 			}
 		}		
 	}
+	// If AP hit 0, no nodes are reachable — end the run.
+	// This is the single ConcludeGame trigger point, called indirectly
+	// when panel-closing code invokes RefreshAllNodeStates().
+	if (CurrentHexMapResources.FindRef(EResourceType::AP) <= 0)
+	{
+		ConcludeGame();
+		return ReachableCoords;
+	}
+
 	return ReachableCoords;
 }
 
@@ -284,7 +293,8 @@ bool UHexMapSubsystem::TryMoveToNode(FIntVector2 TargetCoord)
 	}
 
 	CurrentCoordinate = TargetCoord;
-	RefreshAllNodeStates();
+	// RefreshAllNodeStates() is deferred — called after node content completes
+	// (panel close callbacks, EnterRegion, etc.) rather than mid-move here.
 
 	return true;
 }
@@ -327,6 +337,28 @@ void UHexMapSubsystem::RefreshAllNodeStates()
 				? EHexNodeState::Masked
 				: Pair.Value.NodeState;
 		}
+	}
+
+	// --- Game-over exit: no Masked nodes left in any of the four regions ---
+	// All region maps are fully explored — nothing left to discover anywhere.
+	bool bHasMaskedNodes = false;
+	for (const TPair<EHexRegionType, FHexRegionData>& RegionPair : AllRegionsData)
+	{
+		for (const TPair<FIntVector2, FHexNodeData>& NodePair : RegionPair.Value.Nodes)
+		{
+			if (NodePair.Value.NodeState == EHexNodeState::Masked)
+			{
+				bHasMaskedNodes = true;
+				break;
+			}
+		}
+		if (bHasMaskedNodes) break;
+	}
+	if (bHasMaskedNodes)
+	{
+		UE_LOG(LogTemp, Log, TEXT("RefreshAllNodeStates: no Masked nodes remaining in any region — game over"));
+		ConcludeGame();
+		return;
 	}
 
 	OnHexNodeStatesRefreshed.Broadcast();
@@ -605,7 +637,10 @@ void UHexMapSubsystem::ChangeCurrentAP(int32 APDelta)
 	if(APRef<=0)
 	{
 		APRef=0;
-		ConcludeGame();
+		// ConcludeGame() is now triggered by GetReachableNeighbors()
+		// when the next RefreshAllNodeStates detects AP == 0.
+		// This avoids ConcludeGame firing mid-flow before node content
+		// (Event/Shop/Combat OpenLevel) has been triggered.
 	}
 }
 

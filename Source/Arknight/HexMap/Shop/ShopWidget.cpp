@@ -101,4 +101,10 @@ void UShopWidget::OnAPButtonClicked()
 void UShopWidget::CloseShop()
 {
 	SetVisibility(ESlateVisibility::Collapsed);
+
+	// Trigger node state refresh — may ConcludeGame if AP hit 0
+	if (HexMapSubsystemP)
+	{
+		HexMapSubsystemP->RefreshAllNodeStates();
+	}
 }

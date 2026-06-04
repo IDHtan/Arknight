@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "EventOptionWidget.h"
 #include "HexEventLogicBase.h"
+#include "../Controller/HexMapSubsystem.h"
 
 void UEventWidget::NativeConstruct()
 {
@@ -154,6 +155,12 @@ void UEventWidget::HandleOptionSelected(int32 OptionIndex)
 	else
 	{
 		SetVisibility(ESlateVisibility::Collapsed);
+
+		// Trigger node state refresh — may ConcludeGame if AP hit 0 during event
+		if (UHexMapSubsystem* HexMap = GetGameInstance()->GetSubsystem<UHexMapSubsystem>())
+		{
+			HexMap->RefreshAllNodeStates();
+		}
 	}
 }
 
