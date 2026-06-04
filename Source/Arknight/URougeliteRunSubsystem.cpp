@@ -166,19 +166,8 @@ void URougeliteRunSubsystem::AddResource(EResourceType Type, int32 Amount)
 
 void URougeliteRunSubsystem::AddGameResource(EResourceType Type, int32 Amount)
 {
-	if (Amount <= 0)
-	{
-		return;
-	}
-
-	if (!CurrentSaveGame)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AddGameResource skipped: CurrentSaveGame is null"));
-		return;
-	}
-
-	CurrentSaveGame->GlobalResources.FindOrAdd(Type) += Amount;
-	GlobaleResource.FindOrAdd(Type) += Amount;
+	AddResource(Type, Amount);
+	UE_LOG(LogTemp, Log, TEXT("URougeliteRunSubsystem::AddGameResource: this function is deprecated, use AddResource instead"));
 }
 
 
