@@ -26,7 +26,13 @@ void UOperatorDetailWidget::NativeConstruct()
 
 void UOperatorDetailWidget::UpdateAndShow(FName OperatorName)
 {
-	if (OperatorName.IsNone()) return;
+	UE_LOG(LogTemp, Log, TEXT("UOperatorDetailWidget::UpdateAndShow called with operator name: %s"), *OperatorName.ToString());
+
+	if (OperatorName.IsNone()) 
+	{
+		UE_LOG(LogTemp,Warning,TEXT("UOperatorDetailWidget::UpdateAndShow: Invalid operator name provided to UpdateAndShow"));
+		return;
+	}
 
 	FOperatorLocalRosterData* OperatorRoster = 
 		Cast<ABattlePlayerController>(GetOwningPlayer())->
@@ -35,8 +41,11 @@ void UOperatorDetailWidget::UpdateAndShow(FName OperatorName)
 			{
 				return Data.OperatorName == OperatorName;
 			});
-	if (!OperatorRoster) return;
-
+	if (!OperatorRoster) 
+	{
+		UE_LOG(LogTemp,Warning,TEXT("UOperatorDetailWidget::UpdateAndShow: Failed to find operator roster for %s"), *OperatorName.ToString());
+		return;
+	}
 	OperatorInfo = nullptr;
 	if(OperatorRoster->bIsDeployed && OperatorRoster->OperatorInstance)
 	{
@@ -49,7 +58,11 @@ void UOperatorDetailWidget::UpdateAndShow(FName OperatorName)
 			OperatorInfo = OperatorRoster->OperatorClass.GetDefaultObject();
 		}
 	}
-	if (!OperatorInfo) return;
+	if (!OperatorInfo) {
+		UE_LOG(LogTemp,Warning,TEXT("UOperatorDetailWidget::UpdateAndShow: Failed to find operator info for %s"), *OperatorName.ToString());
+		return;
+	}
+	
 
 	TextName->SetText(FText::FromName(OperatorInfo->OperatorName));
 	TextDescription->SetText(OperatorInfo->OperatorDescription);
