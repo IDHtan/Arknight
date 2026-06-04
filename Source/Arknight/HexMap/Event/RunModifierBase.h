@@ -21,6 +21,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Modifier")
 	EModifierScope Scope = EModifierScope::Permanent;
 
+	// Active only when Permanent or CurrentRegion. NextRegion becomes CurrentRegion on region transition.
+	bool IsActive() const { return Scope == EModifierScope::Permanent || Scope == EModifierScope::CurrentRegion; }
+
 	//[无限火力]移动不消耗AP
 	virtual bool QueryNoMovementCost() const { return false; }
 
@@ -28,10 +31,9 @@ public:
 	virtual bool QueryBanResourceAcquisition(EResourceType Type) const { return false; }
 		
 	// 资源获得倍率（对所有资源类型生效）
+	// bIsEmergency allows modifiers to conditionally apply (e.g. 强袭 only on emergency).
 	// Emergency combat applies ×2 before modifier queries.
-	// 强袭 x1.5 makes it to x3; default implementation returns Amount unchanged.
-	//and there is another modifier with x2, the final multiplier may be x6.
-	virtual int32 QueryResourceGainMultiplier(int32 Amount) const { return Amount; }
+	virtual int32 QueryResourceGainMultiplier(int32 Amount, bool bIsEmergency) const { return Amount; }
 
 	//[驰援险地]跨区域时触发
 	virtual void ExecuteDelayedResourceReward(URougeliteRunSubsystem* RunSubsystem) {}

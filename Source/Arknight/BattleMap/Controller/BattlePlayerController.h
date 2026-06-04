@@ -12,7 +12,6 @@ class AResourceCell;
 class UInputMappingContext;
 class UInputAction;
 class UBattleHUDWidget;
-class UBattleResourceRecordAsset;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCostChangedSignature, int32, NewCost);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOperatorCardClicked, FName, OperatorName);
@@ -61,9 +60,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Economy")
 	int32 CurrentDeploymentCost = 10;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Economy")
-	UBattleResourceRecordAsset* BattleResourceRecord;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Roster")
 	TArray<FOperatorLocalRosterData> LocalRoster;
 
@@ -92,13 +88,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void IncreaseCost(int32 Amount);
-
-	UFUNCTION(BlueprintCallable, Category = "Economy")
-	void ResetBattleResourceRecord();
-
-	UFUNCTION(BlueprintCallable, Category = "Economy")
-	void RecordBattleResourceGain(EResourceType ResourceType, int32 Amount);
-#pragma endregion	
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void Deploy(FName OperatorName, ADeployableCell* DeployCell, EDeploymentDirection DeployDirection);

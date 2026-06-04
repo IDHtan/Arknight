@@ -4,6 +4,8 @@
 #include "OperatorBase.h"
 #include "BulletBase.h"
 #include "../BattleMap/Cell/DeployableCell.h"
+#include "../HexMap/Controller/HexMapSubsystem.h"
+#include "../HexMap/Event/RunModifierBase.h"
 #include "Components/WidgetComponent.h"
 
 AOperatorBase::AOperatorBase()
@@ -39,6 +41,24 @@ void AOperatorBase::OnDeployed(FIntVector2 Location, EDeploymentDirection Direct
 	if (TargetingComp)
 	{
 		TargetingComp->AttackPower = TargetingComp->AttackPower * pow(1.25f, InitialLevel - 1);
+
+		// Apply active attack modifiers (e.g. 人潮人海 +90)
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UHexMapSubsystem* HexMap = GI->GetSubsystem<UHexMapSubsystem>())
+			{
+				float FinalAttack = TargetingComp->AttackPower;
+				for (URunModifierBase* Mod : HexMap->ActiveModifiers)
+				{
+					if (IsValid(Mod) && Mod->IsActive())
+					{
+						FinalAttack = Mod->QueryGlobalAttackFlatBonus(FinalAttack);
+					}
+				}
+				TargetingComp->AttackPower = FinalAttack;
+			}
+		}
+
 		TargetingComp->InitializeAbsoluteRange(GridLocation, FacingDirection);
 	}
 

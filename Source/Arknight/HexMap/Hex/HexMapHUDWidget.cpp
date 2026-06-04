@@ -82,7 +82,8 @@ void UHexMapHUDWidget::NativeConstruct()
 		ExitButton->OnClicked.AddDynamic(this, &UHexMapHUDWidget::OnExitButtonClicked);
 	}
 
-	OnHexNodeStatesRefreshed();
+	// Refresh node states (marks current node Cleared) + triggers visual update
+	HexMapSubsystemP->RefreshAllNodeStates();
 }
 
 void UHexMapHUDWidget::OnHexNodeStatesRefreshed()

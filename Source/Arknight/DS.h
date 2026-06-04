@@ -33,6 +33,15 @@ enum class EResourceType : uint8
 	AP = 6 UMETA(DisplayName = "AP")
 };
 
+UENUM(BlueprintType)
+enum class EHexRegionType : uint8
+{
+	Wood UMETA(DisplayName = "Wood"),
+	Rock UMETA(DisplayName = "Rock"),
+	Grain UMETA(DisplayName = "Grain"),
+	Metal UMETA(DisplayName = "Metal")
+};
+
 // Behavior tags for EResourceType — single source of truth for per-type branching.
 // Each system queries the tag it needs instead of hardcoding if (Type != AP) everywhere.
 namespace EResourceTypeMeta
@@ -42,6 +51,19 @@ namespace EResourceTypeMeta
 
 	// Can be spent as cost in shop transactions (pay this to get something else)
 	inline bool IsTradeableAsCost(EResourceType Type) { return Type != EResourceType::AP; }
+
+	// Map region type to its primary resource
+	inline EResourceType GetRegionPrimaryResource(EHexRegionType Region)
+	{
+		switch (Region)
+		{
+		case EHexRegionType::Wood:  return EResourceType::Wood;
+		case EHexRegionType::Rock:  return EResourceType::Rock;
+		case EHexRegionType::Metal: return EResourceType::Metal;
+		case EHexRegionType::Grain: return EResourceType::Grain;
+		default: return EResourceType::Wood;
+		}
+	}
 }
 
 UENUM(BlueprintType)
@@ -161,15 +183,6 @@ public:
 	TSubclassOf<AOperatorBase> OperatorClass = nullptr;
 };
 
-UENUM(BlueprintType)
-enum class EHexRegionType : uint8
-{
-	Wood UMETA(DisplayName = "Wood"),
-	Rock UMETA(DisplayName = "Rock"),
-	Grain UMETA(DisplayName = "Grain"),
-	Metal UMETA(DisplayName = "Metal")
-};
-
 USTRUCT(BlueprintType)
 struct FLevelLayoutConfig : public FTableRowBase
 {
@@ -247,6 +260,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
 	EHexNodeState NodeState = EHexNodeState::Masked;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
+	bool bHasBeenVisited = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HexMap")
 	int32 ContentSeed = 0;

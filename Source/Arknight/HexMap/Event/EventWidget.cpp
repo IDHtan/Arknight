@@ -144,15 +144,20 @@ void UEventWidget::HandleOptionSelected(int32 OptionIndex)
 		return;
 	}
 
+	ActiveLogicInstance->bTriggeredCombat = false;
 	ActiveLogicInstance->ExecuteOption(OptionIndex);
 
-	// Advance to next stage or close
+	// If ExecuteOption triggered an OpenLevel combat transition, skip closing/refreshing.
+	// Otherwise RefreshAllNodeStates (called below) would race ConcludeGame against OpenLevel.
+	if (ActiveLogicInstance->bTriggeredCombat) return;
+
+	// Let event logic determine the next stage (supports branches, cycles, termination)
 	const int32 TotalStages = GetTotalStages();
-	if (CurrentStage + 1 < TotalStages)
-	{
-		ShowStage(CurrentStage + 1);
-	}
-	else
+	const int32 NextStage = ActiveLogicInstance
+		? ActiveLogicInstance->DetermineNextStage(CurrentStage, OptionIndex)
+		: CurrentStage + 1;
+
+	if (NextStage < 0 || NextStage >= TotalStages)
 	{
 		SetVisibility(ESlateVisibility::Collapsed);
 
@@ -161,6 +166,10 @@ void UEventWidget::HandleOptionSelected(int32 OptionIndex)
 		{
 			HexMap->RefreshAllNodeStates();
 		}
+	}
+	else
+	{
+		ShowStage(NextStage);
 	}
 }
 

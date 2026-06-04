@@ -75,7 +75,8 @@ void URougeliteRunSubsystem::CheckOperators()
 	TArray<FOperatorDictionary*> AllRows;
 	Table->GetAllRows<FOperatorDictionary>(TEXT("CheckOperators"), AllRows);
 	for (const auto& Row : AllRows){
-		if (Row && !CurrentSaveGame->OperatorLevels.Contains(Row->OperatorName)) {
+		if (Row && !CurrentSaveGame->OperatorLevels.Contains(Row->OperatorName))
+		{
 			CurrentSaveGame->OperatorLevels.Add(Row->OperatorName, 1);
 			UE_LOG(LogTemp, Warning, TEXT("Added new operator: %s"), *Row->OperatorName.ToString());
 		}
@@ -93,8 +94,14 @@ void URougeliteRunSubsystem::CheckOperators()
 		}
 		else {
 			UE_LOG(LogTemp, Warning, TEXT("Operator %s not found in OperatorDictTable"), *pair.Key.ToString());
-			CurrentSaveGame->OperatorLevels.Remove(pair.Key);			
+			CurrentSaveGame->OperatorLevels.Remove(pair.Key);
 		}
+	}
+
+	if (FOperatorRosterData* Amiya = GlobalRoster.FindByPredicate(
+		[](const FOperatorRosterData& D) { return D.OperatorName == FName(TEXT("Amiya")); }))
+	{
+		Amiya->bCanJoinBattle = false;
 	}
 }
 
@@ -114,6 +121,30 @@ void URougeliteRunSubsystem::UpgradeOperator(FName OperatorName)
 	if (Founded) {
 		Founded->OperatorLevel = CurrentSaveGame->OperatorLevels[OperatorName];
 	}
+}
+
+void URougeliteRunSubsystem::AddOperator(FName OperatorName)
+{
+	// "Recruit" an operator by enabling them for battle. Does NOT modify
+	// the roster array — only flips bCanJoinBattle on an existing entry.
+	FOperatorRosterData* Found = GlobalRoster.FindByPredicate(
+		[&OperatorName](const FOperatorRosterData& D) { return D.OperatorName == OperatorName; });
+
+	if (!Found)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AddOperator: '%s' not found in GlobalRoster"), *OperatorName.ToString());
+		return;
+	}
+
+	Found->bCanJoinBattle = true;
+
+	// Persist to save
+	if (CurrentSaveGame && !CurrentSaveGame->OperatorLevels.Contains(OperatorName))
+	{
+		CurrentSaveGame->OperatorLevels.Add(OperatorName, 1);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("AddOperator: '%s' unlocked for battle"), *OperatorName.ToString());
 }
 
 void URougeliteRunSubsystem::AddResource(EResourceType Type, int32 Amount)

@@ -53,6 +53,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MetaProgression")
 	void UpgradeOperator(FName OperatorName);
 
+	// Add a new operator to GlobalRoster (used by 人才引进 event)
+	UFUNCTION(BlueprintCallable, Category = "MetaProgression")
+	void AddOperator(FName OperatorName);
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void AddResource(EResourceType Type, int32 Amount);

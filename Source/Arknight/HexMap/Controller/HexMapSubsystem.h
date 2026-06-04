@@ -12,9 +12,6 @@ class URunModifierBase;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAPChangedSignature, int32, NewAP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHexNodeStatesRefreshedSignature);
 
-/**
- * 
- */
 UCLASS()
 class ARKNIGHT_API UHexMapSubsystem : public UGameInstanceSubsystem
 {
@@ -53,28 +50,22 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Flow")
 	FName PendingBattleLevelID = NAME_None;
 
-	// Combat type of the upcoming battle — read by BattleGameMode to determine timer behavior
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Flow")
 	EHexNodeType PendingBattleType = EHexNodeType::Combat_Normal;
 #pragma endregion
 
 #pragma region DataRecording
+	// AP consumed in current region (for events like 退老还童)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
 	int32 CurrentHexMapConsumedAP = 0;
 
+	// AP consumed across the entire run
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
 	int32 CurrentGameConsumedAP = 0;
-
-	//only used to count how much resource gained instead of lost, 
-	//for end-of-map summary. Actual balance is tracked in CurrentGameResources.
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
-	TMap<EResourceType, int32> CurrentHexMapResources; 
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy")
-	TMap<EResourceType, int32> CurrentGameResources;
 #pragma endregion
 
 public:
+#pragma region NodeState
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Run")
 	void InitializeNewRun(int32 Seed);
 
@@ -84,7 +75,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Region")
 	void EnterRegion(EHexRegionType Region);
 
-#pragma region NodeState
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "HexMap|Query")
 	FHexNodeData GetNodeInfo(FIntVector2 Coord) const;
 
@@ -97,23 +87,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Region")
 	void RefreshAllNodeStates();
 
-	// Reveal all Masked nodes in current region (used by events like "搜")
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Region")
 	void RevealAllRegionNodes();
 #pragma endregion
 
 #pragma region NodeContentFlow
-	// Pick a random battle level from the candidate pool for the given node type.
-	// Used by event logic subclasses that trigger combat 
-	// Calls BuildBattleCandidateIDs internally, filters out LastBattleID to avoid repeats,
-	// then uses ContentSeed + FMath::Rand() for deterministic randomness.
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Flow")
 	FName GetRandomBattleLevelID(EHexNodeType NodeType) const;
 
 	UFUNCTION(BlueprintCallable, Category = "HexMap|Flow")
 	FHexNodeTriggerResult TriggerNodeContent(FIntVector2 TargetCoord);
 
-	// LevelID = which battle map to load; NodeType = Combat_Normal or Combat_Emergency
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void PrepareForBattle(FName LevelID, EHexNodeType NodeType);
 
@@ -125,8 +109,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	FName ConsumePendingBattleID();
 
-	// Battle settlement is now handled by ABattleGameMode::ConcludeBattle().
-	// This stub remains for compatibility; logic was moved to BattleMap for tighter resource/timer control.
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void ConcludeBattle();
 
@@ -135,17 +117,32 @@ public:
 #pragma endregion
 
 #pragma region Economy
+	// --- Resource getters (read from CurrentGameResources) ---
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "RunLogic")
+	int32 GetResource(EResourceType Type) const;
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "RunLogic")
 	int32 GetCurrentAP() const;
 
+	// --- Resource setters (operate on CurrentGameResources + auto-sync up) ---
+	// Adds to CurrentGameResources. Also propagates to GlobalResources.
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	void ChangeCurrentAP(int32 APDelta);
+	void AddGameResource(EResourceType Type, int32 Amount);
 
+	// Adds to CurrentHexMapResources (gains only) AND calls AddGameResource.
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void AddHexMapResource(EResourceType Type, int32 Amount);
 
+	// Modifies AP; tracks consumed AP in CurrentHexMapConsumedAP / CurrentGameConsumedAP
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	void AddGameResource(EResourceType Type, int32 Amount);
+	void ChangeCurrentAP(int32 APDelta);
+
+	// --- Read-only view for iteration (e.g. InventoryWidget populating icons) ---
+	const TMap<EResourceType, int32>& GetAllResources() const { return CurrentGameResources; }
+
+	// --- Special: how much was lost (spent) in this region, for events like 退老还童 ---
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "RunLogic")
+	TMap<EResourceType, int32> GetHexMapLost() const;
 #pragma endregion
 
 #pragma region Modifier
@@ -157,9 +154,15 @@ public:
 #pragma endregion
 
 private:
+	// Only tracks gains (Amount > 0) — per-region stats for display
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy", meta = (AllowPrivateAccess = "true"))
+	TMap<EResourceType, int32> CurrentHexMapResources;
+
+	// Source of truth for all resource balances (including AP). Setter propagates to Global.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RunData|Economy", meta = (AllowPrivateAccess = "true"))
+	TMap<EResourceType, int32> CurrentGameResources;
+
 	TArray<FName> BuildBattleCandidateIDs(EHexNodeType NodeType) const;
-
 	TArray<FName> BuildEventCandidateIDs(EHexNodeType NodeType) const;
-
 	FName PickContentIDFromCandidates(const TArray<FName>& CandidateIDs, int32 Seed, FName LastPickedID) const;
 };

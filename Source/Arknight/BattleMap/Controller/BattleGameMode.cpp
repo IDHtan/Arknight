@@ -44,13 +44,25 @@ void ABattleGameMode::BeginPlay()
 		CameraPawn->FrameGridToScreen(MapManager->GridX, MapManager->GridY, MapManager->CellSize);
 	}
 
-	// --- Emergency timer ---
+	// --- Emergency timer (skip if modifier disables time limit, e.g. 巧击) ---
 	if (CurrentBattleType == EHexNodeType::Combat_Emergency)
 	{
-		GetWorldTimerManager().SetTimer(
-			EmergencyTimerHandle,
-			this, &ABattleGameMode::OnEmergencyTimeUp,
-			EmergencyTimeLimit, false);
+		bool bDisableTimer = false;
+		for (URunModifierBase* Mod : HexMap->ActiveModifiers)
+		{
+			if (IsValid(Mod) && Mod->IsActive() && Mod->QueryDisableCombatTimeLimit())
+			{
+				bDisableTimer = true;
+				break;
+			}
+		}
+		if (!bDisableTimer)
+		{
+			GetWorldTimerManager().SetTimer(
+				EmergencyTimerHandle,
+				this, &ABattleGameMode::OnEmergencyTimeUp,
+				EmergencyTimeLimit, false);
+		}
 	}
 }
 
@@ -84,7 +96,7 @@ void ABattleGameMode::ConcludeBattle()
 		bool bBanned = false;
 		for (URunModifierBase* Mod : HexMap->ActiveModifiers)
 		{
-			if (IsValid(Mod) && Mod->QueryBanResourceAcquisition(Pair.Key))
+			if (IsValid(Mod) && Mod->IsActive() && Mod->QueryBanResourceAcquisition(Pair.Key))
 			{
 				bBanned = true;
 				break;
@@ -105,9 +117,10 @@ void ABattleGameMode::ConcludeBattle()
 			// 1c. Modifier multiplier chain 
 			for (URunModifierBase* Mod : HexMap->ActiveModifiers)
 			{
-				if (IsValid(Mod))
+				if (IsValid(Mod) && Mod->IsActive())
 				{
-					FinalAmount = Mod->QueryResourceGainMultiplier(FinalAmount);
+					FinalAmount = Mod->QueryResourceGainMultiplier(FinalAmount,
+	CurrentBattleType == EHexNodeType::Combat_Emergency);
 				}
 			}
 		}

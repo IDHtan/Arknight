@@ -8,6 +8,13 @@
 #include "Engine/DataTable.h"
 #define HexRegionSize 4
 
+static const TArray<FIntVector2> HexDirections = {
+	FIntVector2(1, 0),
+	FIntVector2(0, 1),
+	FIntVector2(-1, 1),
+	FIntVector2(1, -1)
+};
+
 void UHexMapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -30,6 +37,13 @@ void UHexMapSubsystem::InitializeNewRun(int32 Seed)
 	CurrentHexMapResources.Empty();
 	CurrentGameResources.Empty();
 
+	// Copy AP from global meta-progression into the new run
+	if (URougeliteRunSubsystem* Run = GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>())
+	{
+		CurrentGameResources.Add(EResourceType::AP,
+			Run->GlobaleResource.FindRef(EResourceType::AP));
+	}
+
 	GenerateRegionNodes(EHexRegionType::Wood);
 	GenerateRegionNodes(EHexRegionType::Rock);
 	GenerateRegionNodes(EHexRegionType::Metal);
@@ -38,9 +52,8 @@ void UHexMapSubsystem::InitializeNewRun(int32 Seed)
 
 void UHexMapSubsystem::EnterRegion(EHexRegionType Region)
 {
-	ProcessRegionEndModifiers();
-	
 	CurrentRegion = Region;
+	ProcessRegionEndModifiers();
 	CurrentCoordinate = FIntVector2(0,0);
 	LastEventID = NAME_None;
 	LastBattleID = NAME_None;
@@ -168,6 +181,12 @@ void UHexMapSubsystem::GenerateRegionNodes(EHexRegionType Region)
 		RegionData.Nodes.Add(NodeData.GridCoordinate, NodeData);
 	}
 
+	// Teleport (exit) starts as visited — always reachable destination
+	if (FHexNodeData* TeleportNode = RegionData.Nodes.Find(FIntVector2(3, 3)))
+	{
+		TeleportNode->bHasBeenVisited = true;
+	}
+
 	RegionData.bIsGenerated = true;
 }
 
@@ -200,17 +219,10 @@ TArray<FIntVector2> UHexMapSubsystem::GetReachableNeighbors(FIntVector2 CenterCo
 		return ReachableCoords;
 	}
 
-	static const TArray<FIntVector2> HexDirections = {
-		FIntVector2(1, 0),
-		FIntVector2(0, 1),
-		FIntVector2(-1, 1),
-		FIntVector2(1, -1)
-	};
-
 	bool bNoMovementCost = false;
 	for (URunModifierBase* Modifier : ActiveModifiers)
 	{
-		if (IsValid(Modifier) && Modifier->QueryNoMovementCost())
+		if (IsValid(Modifier) && Modifier->IsActive() && Modifier->QueryNoMovementCost())
 		{
 			bNoMovementCost = true;
 			break;
@@ -232,7 +244,7 @@ TArray<FIntVector2> UHexMapSubsystem::GetReachableNeighbors(FIntVector2 CenterCo
 			}
 			else
 			{
-				const int32 CurrentAP = CurrentHexMapResources.FindRef(EResourceType::AP);
+				const int32 CurrentAP = CurrentGameResources.FindRef(EResourceType::AP);
 				if (Direction == FIntVector2(1, 0) || Direction == FIntVector2(0, 1))
 				{
 					if (CurrentAP >= 1)
@@ -246,15 +258,6 @@ TArray<FIntVector2> UHexMapSubsystem::GetReachableNeighbors(FIntVector2 CenterCo
 			}
 		}		
 	}
-	// If AP hit 0, no nodes are reachable — end the run.
-	// This is the single ConcludeGame trigger point, called indirectly
-	// when panel-closing code invokes RefreshAllNodeStates().
-	if (CurrentHexMapResources.FindRef(EResourceType::AP) <= 0)
-	{
-		ConcludeGame();
-		return ReachableCoords;
-	}
-
 	return ReachableCoords;
 }
 
@@ -277,7 +280,7 @@ bool UHexMapSubsystem::TryMoveToNode(FIntVector2 TargetCoord)
 	bool bNoMovementCost = false;
 	for (URunModifierBase* Modifier : ActiveModifiers)
 	{
-		if (IsValid(Modifier) && Modifier->QueryNoMovementCost())
+		if (IsValid(Modifier) && Modifier->IsActive() && Modifier->QueryNoMovementCost())
 		{
 			bNoMovementCost = true;
 			break;
@@ -293,8 +296,6 @@ bool UHexMapSubsystem::TryMoveToNode(FIntVector2 TargetCoord)
 	}
 
 	CurrentCoordinate = TargetCoord;
-	// RefreshAllNodeStates() is deferred — called after node content completes
-	// (panel close callbacks, EnterRegion, etc.) rather than mid-move here.
 
 	return true;
 }
@@ -310,19 +311,39 @@ void UHexMapSubsystem::RefreshAllNodeStates()
 
 	const TArray<FIntVector2> ReachableNeighbors = GetReachableNeighbors(CurrentCoordinate);
 
+	// If AP hit 0, no nodes are reachable — end the run.
+	if (CurrentGameResources.FindRef(EResourceType::AP) <= 0)
+	{
+		ConcludeGame();
+		return;
+	}
+
 	if (FHexNodeData* EntranceNode = RegionData->Nodes.Find(FIntVector2(0, 0)))
 	{
 		EntranceNode->NodeState = EHexNodeState::Cleared;
+		EntranceNode->bHasBeenVisited = true;
 	}
 
 	if (FHexNodeData* CurrentNode = RegionData->Nodes.Find(CurrentCoordinate))
 	{
 		CurrentNode->NodeState = EHexNodeState::Cleared;
+		CurrentNode->bHasBeenVisited = true;
 	}
 
 	if (FHexNodeData* TeleportNode = RegionData->Nodes.Find(FIntVector2(3, 3)))
 	{
 		TeleportNode->NodeState = EHexNodeState::Unmasked;
+	}
+
+	// Reveal all adjacent hexes (even if unaffordable) so the player sees them
+	for (const FIntVector2& Dir : HexDirections)
+	{
+		const FIntVector2 Neighbor = CurrentCoordinate + Dir;
+		FHexNodeData* NeighborNode = RegionData->Nodes.Find(Neighbor);
+		if (NeighborNode && NeighborNode->NodeState == EHexNodeState::Masked)
+		{
+			NeighborNode->NodeState = EHexNodeState::Unmasked;
+		}
 	}
 
 	for (TPair<FIntVector2, FHexNodeData>& Pair : RegionData->Nodes)
@@ -333,30 +354,30 @@ void UHexMapSubsystem::RefreshAllNodeStates()
 		}
 		else
 		{
+			// Previously reachable but not chosen → stay visible (Unmasked)
 			Pair.Value.NodeState = Pair.Value.NodeState == EHexNodeState::Reachable
-				? EHexNodeState::Masked
+				? EHexNodeState::Unmasked
 				: Pair.Value.NodeState;
 		}
 	}
 
-	// --- Game-over exit: no Masked nodes left in any of the four regions ---
-	// All region maps are fully explored — nothing left to discover anywhere.
-	bool bHasMaskedNodes = false;
+	// --- Game-over exit: all nodes visited in all four regions ---
+	bool bAllVisited = true;
 	for (const TPair<EHexRegionType, FHexRegionData>& RegionPair : AllRegionsData)
 	{
 		for (const TPair<FIntVector2, FHexNodeData>& NodePair : RegionPair.Value.Nodes)
 		{
-			if (NodePair.Value.NodeState == EHexNodeState::Masked)
+			if (!NodePair.Value.bHasBeenVisited)
 			{
-				bHasMaskedNodes = true;
+				bAllVisited = false;
 				break;
 			}
 		}
-		if (bHasMaskedNodes) break;
+		if (!bAllVisited) break;
 	}
-	if (bHasMaskedNodes)
+	if (bAllVisited)
 	{
-		UE_LOG(LogTemp, Log, TEXT("RefreshAllNodeStates: no Masked nodes remaining in any region — game over"));
+		UE_LOG(LogTemp, Log, TEXT("RefreshAllNodeStates: all nodes visited in all regions — game over"));
 		ConcludeGame();
 		return;
 	}
@@ -381,7 +402,6 @@ void UHexMapSubsystem::RevealAllRegionNodes()
 		}
 	}
 
-	// Recalculate reachable neighbors to reflect the newly revealed nodes
 	RefreshAllNodeStates();
 }
 
@@ -619,11 +639,29 @@ void UHexMapSubsystem::ConcludeGame()
 
 int32 UHexMapSubsystem::GetCurrentAP() const
 {
-	return CurrentHexMapResources.FindRef(EResourceType::AP);
+	return GetResource(EResourceType::AP);
 }
+
+int32 UHexMapSubsystem::GetResource(EResourceType Type) const
+{
+	return CurrentGameResources.FindRef(Type);
+}
+
+TMap<EResourceType, int32> UHexMapSubsystem::GetHexMapLost() const
+{
+	TMap<EResourceType, int32> Lost;
+	for (const TPair<EResourceType, int32>& Pair : CurrentHexMapResources)
+	{
+		const int32 Balance = CurrentGameResources.FindRef(Pair.Key);
+		const int32 Loss = Pair.Value - Balance;
+		if (Loss > 0) Lost.Add(Pair.Key, Loss);
+	}
+	return Lost;
+}
+
 void UHexMapSubsystem::ChangeCurrentAP(int32 APDelta)
 {
-	int32& APRef = CurrentHexMapResources.FindOrAdd(EResourceType::AP);
+	int32& APRef = CurrentGameResources.FindOrAdd(EResourceType::AP);
 	APRef += APDelta;
 	if (APDelta < 0)
 	{
@@ -672,6 +710,30 @@ void UHexMapSubsystem::AddModifierInstance(URunModifierBase* NewModifier)
 
 void UHexMapSubsystem::ProcessRegionEndModifiers()
 {
-	// Modifier execution rules are deferred until the modifier system is implemented.
-	UE_LOG(LogTemp, Log, TEXT("HexMapSubsystem::ProcessRegionEndModifiers is currently a placeholder."));
+	// 1. Execute delayed rewards (CurrentRegion-scoped only)
+	for (URunModifierBase* Mod : ActiveModifiers)
+	{
+		if (IsValid(Mod) && Mod->Scope == EModifierScope::CurrentRegion)
+		{
+			if (URougeliteRunSubsystem* RunSub = GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>())
+			{
+				Mod->ExecuteDelayedResourceReward(RunSub);
+			}
+		}
+	}
+
+	// 2. Remove CurrentRegion-scoped modifiers (they expire)
+	ActiveModifiers.RemoveAll([](const URunModifierBase* Mod)
+	{
+		return !IsValid(Mod) || Mod->Scope == EModifierScope::CurrentRegion;
+	});
+
+	// 3. Promote NextRegion → CurrentRegion
+	for (URunModifierBase* Mod : ActiveModifiers)
+	{
+		if (IsValid(Mod) && Mod->Scope == EModifierScope::NextRegion)
+		{
+			Mod->Scope = EModifierScope::CurrentRegion;
+		}
+	}
 }

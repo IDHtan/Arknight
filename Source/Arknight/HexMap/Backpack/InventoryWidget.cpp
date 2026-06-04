@@ -55,7 +55,7 @@ void UInventoryWidget::OpenInventory(bool bInSelectionMode)
 		return;
 	}
 
-	const TMap<EResourceType, int32>& Resources = HexMapSubsystem->CurrentGameResources;
+	const TMap<EResourceType, int32>& Resources = HexMapSubsystem->GetAllResources();
 	for (const TPair<EResourceType, int32>& Pair : Resources)
 	{
 		// Skip resources that shouldn't appear in the backpack (e.g. AP)
@@ -120,7 +120,7 @@ void UInventoryWidget::OnResourceButtonClicked(EResourceType Type)
 	bHasSelectedResource = true;
 
 	UHexMapSubsystem* HexMapSubsystem = GetGameInstance() ? GetGameInstance()->GetSubsystem<UHexMapSubsystem>() : nullptr;
-	const int32 Quantity = HexMapSubsystem ? HexMapSubsystem->CurrentGameResources.FindRef(Type) : 0;
+	const int32 Quantity = HexMapSubsystem ? HexMapSubsystem->GetResource(Type) : 0;
 
 	if (ResourceNameText)
 	{

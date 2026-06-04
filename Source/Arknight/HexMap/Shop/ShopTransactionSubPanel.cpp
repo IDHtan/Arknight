@@ -52,7 +52,7 @@ void UShopTransactionSubPanel::ShowTransaction(EResourceType TargetType)
 	}
 	else
 	{
-		CurrentCostType = GetRegionResource(HexMapSubsystemP->CurrentRegion);
+		CurrentCostType = EResourceTypeMeta::GetRegionPrimaryResource(HexMapSubsystemP->CurrentRegion);
 		CurrentExchangeRate = 1;
 	}
 	bHasCurrentCostType = true;
@@ -131,6 +131,7 @@ void UShopTransactionSubPanel::RequestBackpackSelection()
 	}
 
 	Inventory->OpenInventory(true);
+	Inventory->OnResourceConfirmed.RemoveDynamic(this, &UShopTransactionSubPanel::OnBackpackResourceSelected);
 	Inventory->OnResourceConfirmed.AddDynamic(this, &UShopTransactionSubPanel::OnBackpackResourceSelected);
 }
 
@@ -150,7 +151,7 @@ void UShopTransactionSubPanel::OnBackpackResourceSelected(EResourceType Type)
 	//   10 non-Grain main region resource → 1 AP
 	//   15 other non-Grain resource → 1 AP
 	//   15 Grain → 1 AP as well (Grain→HighQualityFood handled in ShowTransaction)
-	const EResourceType RegionResource = GetRegionResource(HexMapSubsystemP->CurrentRegion);
+	const EResourceType RegionResource = EResourceTypeMeta::GetRegionPrimaryResource(HexMapSubsystemP->CurrentRegion);
 	if (Type == RegionResource && Type != EResourceType::Grain)
 	{
 		CurrentExchangeRate = 10;
@@ -209,7 +210,7 @@ void UShopTransactionSubPanel::OnConfirmClicked()
 		return;
 	}
 
-	const int32 Balance = HexMapSubsystemP->CurrentGameResources.FindRef(CurrentCostType);
+	const int32 Balance = HexMapSubsystemP->GetResource(CurrentCostType);
 	if (Balance < InputQuantity)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ShopTransactionSubPanel::OnConfirmClicked: Balance %d insufficient for cost %d"),
@@ -238,14 +239,3 @@ void UShopTransactionSubPanel::OnConfirmClicked()
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 
-EResourceType UShopTransactionSubPanel::GetRegionResource(EHexRegionType Region)
-{
-	switch (Region)
-	{
-	case EHexRegionType::Wood:  return EResourceType::Wood;
-	case EHexRegionType::Rock:  return EResourceType::Rock;
-	case EHexRegionType::Metal: return EResourceType::Metal;
-	case EHexRegionType::Grain: return EResourceType::Grain;
-	default: return EResourceType::Wood;
-	}
-}

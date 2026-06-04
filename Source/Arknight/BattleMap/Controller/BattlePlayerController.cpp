@@ -4,7 +4,6 @@
 #include "BattlePlayerController.h"
 #include "../../URougeliteRunSubsystem.h"
 #include "../../Operator/OperatorBase.h"
-#include "../Data/BattleResourceRecordAsset.h"
 #include "../BattleMapManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Cell/DeployableCell.h"
@@ -38,7 +37,6 @@ void ABattlePlayerController::BeginPlay()
 	SelectedOperatorCardName = NAME_None;
 	SelectedResourceCell = nullptr;
 	SelectedDeployableCell = nullptr;
-	ResetBattleResourceRecord();
 
 	LocalRoster.Empty();
 	URougeliteRunSubsystem* RunSubsystem = GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>();
@@ -129,32 +127,6 @@ void ABattlePlayerController::IncreaseCost(int32 Amount)
 {
 	CurrentDeploymentCost += Amount;
 	OnCostChanged.Broadcast(CurrentDeploymentCost);
-}
-
-void ABattlePlayerController::ResetBattleResourceRecord()
-{
-	if (!BattleResourceRecord)
-	{
-		BattleResourceRecord = NewObject<UBattleResourceRecordAsset>(this);
-	}
-
-	if (BattleResourceRecord)
-	{
-		BattleResourceRecord->ResetRecord();
-	}
-}
-
-void ABattlePlayerController::RecordBattleResourceGain(EResourceType ResourceType, int32 Amount)
-{
-	if (!BattleResourceRecord)
-	{
-		ResetBattleResourceRecord();
-	}
-
-	if (BattleResourceRecord)
-	{
-		BattleResourceRecord->AddResourceGain(ResourceType, Amount);
-	}
 }
 
 void ABattlePlayerController::OnClickStarted()

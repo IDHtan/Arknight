@@ -3,8 +3,7 @@
 
 #include "ResourceCell.h"
 #include "../../Component/HealthComponent.h"
-#include "../../URougeliteRunSubsystem.h"
-#include "../Controller/BattlePlayerController.h"
+#include "../Controller/BattleGameMode.h"
 #include "../BattleMapManager.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -32,16 +31,10 @@ void AResourceCell::OnCellDepleted(AActor* Killer)
 	UE_LOG(LogTemp, Warning, TEXT("Resource Cell Depleted!"));
 
 	DropAmount--;
-	if(UGameInstance* GameInstance = GetGameInstance())
+	// Only write to battle-level tracker — ConcludeBattle handles upstream propagation
+	if (ABattleGameMode* GM = Cast<ABattleGameMode>(GetWorld()->GetAuthGameMode()))
 	{
-		if(URougeliteRunSubsystem* Rougelite = GameInstance->GetSubsystem<URougeliteRunSubsystem>())
-		{
-			Rougelite->AddResource(ResourceType, 1);
-			if (ABattlePlayerController* BattlePC = Cast<ABattlePlayerController>(UGameplayStatics::GetPlayerController(this, 0)))
-			{
-				BattlePC->RecordBattleResourceGain(ResourceType, 1);
-			}
-		}
+		GM->AddBattleResource(ResourceType, 1);
 	}
 
 	

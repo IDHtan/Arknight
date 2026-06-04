@@ -28,9 +28,22 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	URougeliteRunSubsystem* RunSubsystemRef;
 
+	// Set to true in ExecuteOption_Implementation when the option triggers OpenLevel
+	// (combat). Prevents HandleOptionSelected from closing the panel and calling
+	// RefreshAllNodeStates, which would race ConcludeGame against OpenLevel when AP==0.
+	bool bTriggeredCombat = false;
+
 public:
 	virtual void InitializeLogic(UGameInstance* GameInstance);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void ExecuteOption(int32 OptionIndex);
+
+	// Called by EventWidget after ExecuteOption to determine which stage to show next.
+	// Return -1 → close event. Default: linear advance (CurrentStage + 1).
+	// Override this for non-linear event flows (branches, cycles, early termination).
+	virtual int32 DetermineNextStage(int32 CurrentStage, int32 SelectedOption)
+	{
+		return CurrentStage + 1;
+	}
 };

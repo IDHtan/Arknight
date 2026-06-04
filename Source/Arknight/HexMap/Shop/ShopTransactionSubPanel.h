@@ -97,8 +97,4 @@ public:
 
 	UFUNCTION()
 	void OnConfirmClicked();
-
-private:
-	// Map region type to its primary resource for cost calculation
-	static EResourceType GetRegionResource(EHexRegionType Region);
 };
