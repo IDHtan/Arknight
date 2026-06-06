@@ -125,11 +125,9 @@ public:
 	int32 GetCurrentAP() const;
 
 	// --- Resource setters (operate on CurrentGameResources + auto-sync up) ---
-	// Adds to CurrentGameResources. Also propagates to GlobalResources.
-	UFUNCTION(BlueprintCallable, Category = "RunLogic")
-	void AddGameResource(EResourceType Type, int32 Amount);
-
-	// Adds to CurrentHexMapResources (gains only) AND calls AddGameResource.
+	// Amount>0 → writes CurrentHexMapResources (gain tracking)
+	// Always writes CurrentGameResources + auto-propagates to GlobalResources.
+	// This is the ONLY public entry point for resource modification.
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void AddHexMapResource(EResourceType Type, int32 Amount);
 

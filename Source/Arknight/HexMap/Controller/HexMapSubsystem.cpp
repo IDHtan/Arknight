@@ -507,7 +507,14 @@ TArray<FName> UHexMapSubsystem::BuildEventCandidateIDs(EHexNodeType NodeType) co
 			continue;
 		}
 
-		if (Row->TargetRegion != CurrentRegion)
+		// Events are region-specific; Rewards are shared across all regions
+		if (NodeType == EHexNodeType::Event && Row->TargetRegion != CurrentRegion)
+		{
+			continue;
+		}
+
+		// Also filter by NodeType so Event/Reward rows don't mix
+		if (Row->NodeType != NodeType)
 		{
 			continue;
 		}
@@ -708,17 +715,17 @@ void UHexMapSubsystem::ChangeCurrentAP(int32 APDelta)
 
 void UHexMapSubsystem::AddHexMapResource(EResourceType Type, int32 Amount)
 {
-	if(Amount>0)
+	// Tier 2: region gain tracking (gains only)
+	if (Amount > 0)
 	{
 		CurrentHexMapResources.FindOrAdd(Type) += Amount;
 	}
-	AddGameResource(Type, Amount);
-}
 
-void UHexMapSubsystem::AddGameResource(EResourceType Type, int32 Amount)
-{
+	// Tier 3: run-level balance — always applied (positive or negative)
 	CurrentGameResources.FindOrAdd(Type) += Amount;
-	if(URougeliteRunSubsystem* RunSubsystem=GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>())
+
+	// Tier 4: auto-sync to global meta-progression
+	if (URougeliteRunSubsystem* RunSubsystem = GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>())
 	{
 		RunSubsystem->AddGameResource(Type, Amount);
 	}

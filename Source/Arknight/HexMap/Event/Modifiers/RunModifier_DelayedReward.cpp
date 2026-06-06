@@ -16,7 +16,7 @@ void URunModifier_DelayedReward::ExecuteDelayedResourceReward(URougeliteRunSubsy
 	const int32 RewardAmount = HexMap->CurrentHexMapConsumedAP;
 	if (RewardAmount > 0)
 	{
-		HexMap->AddGameResource(RewardType, RewardAmount);
+		HexMap->AddHexMapResource(RewardType, RewardAmount);
 		UE_LOG(LogTemp, Log, TEXT("RunModifier_DelayedReward: granted %d %s for consumed AP"),
 			RewardAmount, *UEnum::GetValueAsString(RewardType));
 	}

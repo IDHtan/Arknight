@@ -324,6 +324,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
 	FName EventID = NAME_None;
 
+	// Event = region-filtered; Reward = available in all regions
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
+	EHexNodeType NodeType = EHexNodeType::Event;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
 	EHexRegionType TargetRegion = EHexRegionType::Wood;
 
