@@ -6,9 +6,25 @@
 #include "../Controller/BattlePlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
+void ADeployableCell::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 缓存原始材质并创建动态材质实例（不在构造里做，因为蓝图可能还没设置材质）
+	if (CellMeshComponent)
+	{
+		UMaterialInterface* BaseMaterial = CellMeshComponent->GetMaterial(0);
+		if (BaseMaterial)
+		{
+			DynamicMaterialInstance = UMaterialInstanceDynamic::Create(BaseMaterial, this);
+			CellMeshComponent->SetMaterial(0, DynamicMaterialInstance);
+		}
+	}
+}
+
 void ADeployableCell::SetOccupyingOperator(AOperatorBase* Operator)
 {
-	if (Operator) 
+	if (Operator)
 	{
 		OccupyingOperator = Operator;
 		bIsOccupied = true;
@@ -18,7 +34,7 @@ void ADeployableCell::SetOccupyingOperator(AOperatorBase* Operator)
 		OccupyingOperator = nullptr;
 		bIsOccupied = false;
 	}
-	
+
 	//***
 	//*metion*: this need to reset back after viusal effect is implemented
 	//***
@@ -90,5 +106,21 @@ void ADeployableCell::OnOperatorCardClicked(FName OperatorName)
 	else
 	{
 		DisableVisualEffect();
+	}
+}
+
+void ADeployableCell::EnableVisualEffect_Implementation()
+{
+	if (DynamicMaterialInstance)
+	{
+		DynamicMaterialInstance->SetVectorParameterValue(TintParameterName, EnabledTintColor);
+	}
+}
+
+void ADeployableCell::DisableVisualEffect_Implementation()
+{
+	if (DynamicMaterialInstance)
+	{
+		DynamicMaterialInstance->SetVectorParameterValue(TintParameterName, FLinearColor::White);
 	}
 }
