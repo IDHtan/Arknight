@@ -63,6 +63,7 @@ void UCraftingPanel::PopulateResourceList()
 {
 	if (!IconsContainer || !IconWidgetClass || !RunSubsystem)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("CraftingPanel::PopulateResourceList: missing components or RunSubsystem"));
 		return;
 	}
 
