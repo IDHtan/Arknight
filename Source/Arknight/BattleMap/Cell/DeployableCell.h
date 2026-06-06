@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "../../DS.h"
 #include "BattleCell.h"
 #include "DeployableCell.generated.h"
@@ -32,9 +33,24 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnOperatorCardClicked(FName OperatorName);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "CellVisual")
+	UFUNCTION(BlueprintNativeEvent, Category = "CellVisual")
 	void EnableVisualEffect();
+	void EnableVisualEffect_Implementation();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "CellVisual")
+	UFUNCTION(BlueprintNativeEvent, Category = "CellVisual")
 	void DisableVisualEffect();
+	void DisableVisualEffect_Implementation();
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY()
+	UMaterialInstanceDynamic* DynamicMaterialInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "CellVisual")
+	FLinearColor EnabledTintColor = FLinearColor(0.25f, 1.0f, 0.25f, 1.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "CellVisual")
+	FName TintParameterName = TEXT("TintColor");
 };
