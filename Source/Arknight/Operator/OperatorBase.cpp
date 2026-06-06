@@ -3,17 +3,17 @@
 
 #include "OperatorBase.h"
 #include "BulletBase.h"
+#include "Components/BillboardComponent.h"
 #include "../BattleMap/Cell/DeployableCell.h"
 #include "../HexMap/Controller/HexMapSubsystem.h"
 #include "../HexMap/Event/RunModifierBase.h"
-#include "Components/WidgetComponent.h"
 
 AOperatorBase::AOperatorBase()
 {
  	
 	PrimaryActorTick.bCanEverTick = false;
 
-	SpriteComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpriteComponent"));
+	SpriteComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("SpriteComponent"));
 	RootComponent = SpriteComponent;
 	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
 }
@@ -36,6 +36,12 @@ void AOperatorBase::OnDeployed(FIntVector2 Location, EDeploymentDirection Direct
 		const float OperatorBottomZ = OperatorBoundsOrigin.Z - OperatorBoundsExtent.Z;
 		const float PlacementOffsetZ = CellTopZ - OperatorBottomZ + VisualPlacementOffsetZ;
 		AddActorWorldOffset(FVector(0.0f, 0.0f, PlacementOffsetZ));
+	}
+
+	// Set the 2D sprite to the operator's portrait
+	if (SpriteComponent && AvatarImage)
+	{
+		SpriteComponent->SetSprite(AvatarImage);
 	}
 
 	if (TargetingComp)

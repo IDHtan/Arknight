@@ -24,8 +24,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FText OperatorDescription;
 
+	// 2D sprite always facing camera — replace StaticMesh with a flat image
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UStaticMeshComponent* SpriteComponent;
+	class UBillboardComponent* SpriteComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
 	float VisualPlacementOffsetZ = 0.0f;
