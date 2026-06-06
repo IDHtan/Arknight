@@ -30,7 +30,9 @@ enum class EResourceType : uint8
 	Metal = 3 UMETA(DisplayName = "Metal"),
 	Food = 4 UMETA(DisplayName = "Food"),
 	HighQualityFood = 5 UMETA(DisplayName = "HighQualityFood"),
-	AP = 6 UMETA(DisplayName = "AP")
+	AP = 6 UMETA(DisplayName = "AP"),
+	BuildMaterials = 7 UMETA(DisplayName = "BuildMaterials"),
+	Money = 8           UMETA(DisplayName = "Money")
 };
 
 UENUM(BlueprintType)
@@ -46,8 +48,9 @@ enum class EHexRegionType : uint8
 // Each system queries the tag it needs instead of hardcoding if (Type != AP) everywhere.
 namespace EResourceTypeMeta
 {
-	// Can be held and displayed in the backpack inventory
-	inline bool IsStorable(EResourceType Type) { return Type != EResourceType::AP; }
+	// Can be held and displayed in the backpack inventory.
+	// AP and Money are excluded — they are meta currencies, not backpack items.
+	inline bool IsStorable(EResourceType Type) { return Type != EResourceType::AP && Type != EResourceType::Money; }
 
 	// Can be spent as cost in shop transactions (pay this to get something else)
 	inline bool IsTradeableAsCost(EResourceType Type) { return Type != EResourceType::AP; }
@@ -244,6 +247,9 @@ public:
 	FName IconName = NAME_None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Icon Config")
+	FName DisplayName = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Icon Config")
 	TSoftObjectPtr<UTexture2D> IconTexture = nullptr;
 };
 
@@ -341,4 +347,60 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hex Event")
 	TSubclassOf<UHexEventLogicBase> LogicClass = nullptr;
+};
+
+// ============================================================================
+// BaseBuilding DataTable row structs
+// ============================================================================
+
+// Crafting recipe: InputType → (OutputType, InputPerOutput)
+USTRUCT(BlueprintType)
+struct FInfrastructureCraftRecipe : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CraftRecipe")
+	EResourceType InputType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CraftRecipe")
+	EResourceType OutputType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CraftRecipe")
+	int32 InputPerOutput = 1;
+};
+
+// Trade rate: how much Money per unit of resource sold
+USTRUCT(BlueprintType)
+struct FInfrastructureTradeRate : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TradeRate")
+	EResourceType ResourceType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TradeRate")
+	int32 MoneyPerUnit = 1;
+};
+
+// Exchange item: what can be bought with Money
+USTRUCT(BlueprintType)
+struct FInfrastructureExchangeItem : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ExchangeItem")
+	EResourceType ResourceType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ExchangeItem")
+	int32 MoneyPerUnit = 1;
+
+	// true → uses InfrastructureIcon (with stock quantity); false → uses plain Icon
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ExchangeItem")
+	bool bIsLimited = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ExchangeItem")
+	int32 InitialStock = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ExchangeItem")
+	float DiscountRate = 0.f; // 0.3 = 30% off
 };

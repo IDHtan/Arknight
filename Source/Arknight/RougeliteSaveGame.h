@@ -23,4 +23,15 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 PlayerLevel = 1;
+
+	// BaseBuilding — facility unlock state
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bHasUnlockedTradeStation = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bHasUnlockedExchange = false;
+
+	// Exchange limited stock: ResourceType → remaining quantity
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TMap<EResourceType, int32> ExchangeLimitedStock;
 };

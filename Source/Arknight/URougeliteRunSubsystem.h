@@ -11,6 +11,8 @@
 
 class UHexMapSubsystem;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMoneyChangedSignature, int32, NewAmount);
+
 /**
  * 
  */
@@ -63,4 +65,42 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "RunLogic")
 	void AddGameResource(EResourceType Type, int32 Amount);
+
+	// --- BaseBuilding: resource operations ---
+
+	// Broadcast whenever Money amount changes (deposit or withdrawal)
+	UPROPERTY(BlueprintAssignable, Category = "BaseBuilding|Events")
+	FOnMoneyChangedSignature OnMoneyChanged;
+
+	// Check if enough global resource, deduct if yes. Returns false on insufficient funds.
+	UFUNCTION(BlueprintCallable, Category = "BaseBuilding")
+	bool TryConsumeResource(EResourceType Type, int32 Amount);
+
+	// Read global resource amount from CurrentSaveGame
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "BaseBuilding")
+	int32 GetGlobalResourceAmount(EResourceType Type) const;
+
+	// Set global resource to an absolute value (e.g. AP before starting a run)
+	UFUNCTION(BlueprintCallable, Category = "BaseBuilding")
+	void SetGlobalResourceAmount(EResourceType Type, int32 Amount);
+
+	// --- Exchange stock ---
+
+	// Initialise stock from DT_ExchangeItem on first load
+	void InitExchangeStock();
+
+	// Read remaining stock for a resource type
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "BaseBuilding")
+	int32 GetExchangeStock(EResourceType Type) const;
+
+	// Deduct stock after a purchase
+	void ReduceExchangeStock(EResourceType Type, int32 Amount);
+
+	// --- Facility unlock ---
+
+	UFUNCTION(BlueprintCallable, Category = "BaseBuilding")
+	void UnlockTradeStation();
+
+	UFUNCTION(BlueprintCallable, Category = "BaseBuilding")
+	void UnlockExchange();
 };

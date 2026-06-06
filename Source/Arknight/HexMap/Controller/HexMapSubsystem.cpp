@@ -6,6 +6,7 @@
 #include "../Event/RunModifierBase.h"
 #include "../../RougeliteSettings.h"
 #include "Engine/DataTable.h"
+#include "Kismet/GameplayStatics.h"
 #define HexRegionSize 4
 
 static const TArray<FIntVector2> HexDirections = {
@@ -619,22 +620,45 @@ void UHexMapSubsystem::ConcludeBattle()
 	UE_LOG(LogTemp, Log, TEXT("HexMapSubsystem::ConcludeBattle stub — real logic is in ABattleGameMode"));
 }
 
+//this function has to be checked later
 void UHexMapSubsystem::ConcludeGame()
 {
-	// --- Flow: HexMap run ends → MainMenu / GameOver ---
+	// --- Flow: HexMap run ends → MainMenu ---
 	// Triggered when AP reaches 0 or player forfeits the run.
 	//
 	// Settlement order:
-	//   1. Flush remaining CurrentHexMapResources → CurrentGameResources
-	//      (same chain as ConcludeBattle: AddHexMapResource → AddGameResource)
-	//   2. URougeliteRunSubsystem::SaveGame() → persist to save slot
-	//   3. Clean up transient run state (ActiveModifiers, AllRegionsData, etc.)
-	//   4. OpenLevel("MainMenu") or game-over screen
+	//   1. Save all persistent data via RunSubsystem
+	//   2. Clean up transient run state (ActiveModifiers, AllRegionsData, etc.)
+	//   3. OpenLevel("Lvl_MainMenu")
 	//
-	// Note: This does NOT clean up GlobalResources / SaveGame.
-	// Those persist across runs (meta-progression).
+	// Note: CurrentGameResources are already synced to GlobalResources
+	// via AddGameResource during the run. No late flush needed.
 
-	UE_LOG(LogTemp, Log, TEXT("HexMapSubsystem::ConcludeGame is not implemented yet."));
+	URougeliteRunSubsystem* RunSubsystem = GetGameInstance() ? GetGameInstance()->GetSubsystem<URougeliteRunSubsystem>() : nullptr;
+	if (RunSubsystem)
+	{
+		RunSubsystem->SaveGame();
+	}
+
+	// Clean up transient run state
+	ActiveModifiers.Empty();
+	AllRegionsData.Empty();
+	CurrentHexMapResources.Empty();
+	CurrentGameResources.Empty();
+	CurrentHexMapConsumedAP = 0;
+	CurrentGameConsumedAP = 0;
+	PendingBattleLevelID = NAME_None;
+	LastEventID = NAME_None;
+	LastBattleID = NAME_None;
+
+	if (UWorld* World = GetWorld())
+	{
+		UGameplayStatics::OpenLevel(World, TEXT("Lvl_MainMenu"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("HexMapSubsystem::ConcludeGame: GetWorld() returned null, cannot open MainMenu"));
+	}
 }
 
 int32 UHexMapSubsystem::GetCurrentAP() const

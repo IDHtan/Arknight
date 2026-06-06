@@ -61,7 +61,10 @@ public:
 	void SetResourceType(EResourceType Type);
 
 	UFUNCTION(BlueprintCallable, Category = "Icon")
-	void Update();
+	virtual void SetNone();
+
+	UFUNCTION(BlueprintCallable, Category = "Icon")
+	virtual void Update();
 
 	UFUNCTION()
 	void HandleIconButtonClicked();

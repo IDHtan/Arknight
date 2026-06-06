@@ -26,4 +26,14 @@ public:
 
     UPROPERTY(Config, EditAnywhere, Category = "DataTables")
     TSoftObjectPtr<UDataTable> EventConfigTable;
+
+    // BaseBuilding DataTables
+    UPROPERTY(Config, EditAnywhere, Category = "DataTables|BaseBuilding")
+    TSoftObjectPtr<UDataTable> CraftRecipeTable;
+
+    UPROPERTY(Config, EditAnywhere, Category = "DataTables|BaseBuilding")
+    TSoftObjectPtr<UDataTable> TradeRateTable;
+
+    UPROPERTY(Config, EditAnywhere, Category = "DataTables|BaseBuilding")
+    TSoftObjectPtr<UDataTable> ExchangeItemTable;
 };

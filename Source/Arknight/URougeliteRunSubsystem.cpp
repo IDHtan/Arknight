@@ -14,7 +14,6 @@ void URougeliteRunSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	MapManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UHexMapSubsystem>() : nullptr;
 
 	LoadGame();
-	CheckOperators();
 }
 
 void URougeliteRunSubsystem::Deinitialize()
@@ -31,6 +30,7 @@ void URougeliteRunSubsystem::LoadGame()
 		if (!CurrentSaveGame)
 		{
 			CurrentSaveGame = Cast<URougeliteSaveGame>(UGameplayStatics::CreateSaveGameObject(URougeliteSaveGame::StaticClass()));
+			CurrentSaveGame->GlobalResources.Add(EResourceType::Food, 20);
 		}
 		UE_LOG(LogTemp, Warning, TEXT("load success"));
 	}
@@ -41,6 +41,9 @@ void URougeliteRunSubsystem::LoadGame()
 	}
 
 	GlobalResource = CurrentSaveGame ? CurrentSaveGame->GlobalResources : TMap<EResourceType, int32>();
+
+	InitExchangeStock();
+	CheckOperators();
 }
 
 void URougeliteRunSubsystem::SaveGame()
@@ -160,14 +163,161 @@ void URougeliteRunSubsystem::AddResource(EResourceType Type, int32 Amount)
 		return;
 	}
 
-	CurrentSaveGame->GlobalResources.FindOrAdd(Type) += Amount;
-	GlobalResource.FindOrAdd(Type) += Amount;
+	int32& Ref = CurrentSaveGame->GlobalResources.FindOrAdd(Type);
+	Ref += Amount;
+	GlobalResource.FindOrAdd(Type) =Ref;
+
+	// Broadcast Money change so panels auto-refresh
+	if (Type == EResourceType::Money)
+	{
+		OnMoneyChanged.Broadcast(Ref);
+	}
 }
 
 void URougeliteRunSubsystem::AddGameResource(EResourceType Type, int32 Amount)
 {
 	AddResource(Type, Amount);
 	UE_LOG(LogTemp, Log, TEXT("URougeliteRunSubsystem::AddGameResource: this function is deprecated, use AddResource instead"));
+}
+
+// ============================================================================
+// BaseBuilding — Resource operations
+// ============================================================================
+
+bool URougeliteRunSubsystem::TryConsumeResource(EResourceType Type, int32 Amount)
+{
+	if (Amount <= 0 || !CurrentSaveGame)
+	{
+		return false;
+	}
+
+	int32* CurrentAmount = CurrentSaveGame->GlobalResources.Find(Type);
+	if (!CurrentAmount || *CurrentAmount < Amount)
+	{
+		return false;
+	}
+
+	*CurrentAmount -= Amount;
+	GlobalResource.FindOrAdd(Type) -= *CurrentAmount;
+
+	// Broadcast Money change so panels auto-refresh
+	if (Type == EResourceType::Money)
+	{
+		OnMoneyChanged.Broadcast(*CurrentAmount);
+	}
+
+	return true;
+}
+
+int32 URougeliteRunSubsystem::GetGlobalResourceAmount(EResourceType Type) const
+{
+	if (!CurrentSaveGame)
+	{
+		return 0;
+	}
+	return CurrentSaveGame->GlobalResources.FindRef(Type);
+}
+
+void URougeliteRunSubsystem::SetGlobalResourceAmount(EResourceType Type, int32 Amount)
+{
+	if (!CurrentSaveGame)
+	{
+		return;
+	}
+
+	CurrentSaveGame->GlobalResources.FindOrAdd(Type) = Amount;
+	GlobalResource.FindOrAdd(Type) = Amount;
+
+	// Broadcast Money change if applicable
+	if (Type == EResourceType::Money)
+	{
+		OnMoneyChanged.Broadcast(Amount);
+	}
+}
+
+// ============================================================================
+// BaseBuilding — Exchange stock
+// ============================================================================
+
+void URougeliteRunSubsystem::InitExchangeStock()
+{
+	if (!CurrentSaveGame)
+	{
+		return;
+	}
+
+	// Only initialise if empty (first load or new save)
+	if (CurrentSaveGame->ExchangeLimitedStock.Num() > 0)
+	{
+		return;
+	}
+
+	const URougeliteSettings* Settings = GetDefault<URougeliteSettings>();
+	UDataTable* Table = Settings->ExchangeItemTable.LoadSynchronous();
+	if (!Table)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InitExchangeStock: ExchangeItemTable not found"));
+		return;
+	}
+
+	TArray<FInfrastructureExchangeItem*> AllRows;
+	Table->GetAllRows<FInfrastructureExchangeItem>(TEXT("InitExchangeStock"), AllRows);
+	for (const FInfrastructureExchangeItem* Row : AllRows)
+	{
+		if (Row && Row->bIsLimited)
+		{
+			CurrentSaveGame->ExchangeLimitedStock.Add(Row->ResourceType, Row->InitialStock);
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("InitExchangeStock: initialised %d limited items"), CurrentSaveGame->ExchangeLimitedStock.Num());
+}
+
+int32 URougeliteRunSubsystem::GetExchangeStock(EResourceType Type) const
+{
+	if (!CurrentSaveGame)
+	{
+		return 0;
+	}
+	return CurrentSaveGame->ExchangeLimitedStock.FindRef(Type);
+}
+
+void URougeliteRunSubsystem::ReduceExchangeStock(EResourceType Type, int32 Amount)
+{
+	if (!CurrentSaveGame || Amount <= 0)
+	{
+		return;
+	}
+
+	int32* Stock = CurrentSaveGame->ExchangeLimitedStock.Find(Type);
+	if (Stock && *Stock >= Amount)
+	{
+		*Stock -= Amount;
+	}
+}
+
+// ============================================================================
+// BaseBuilding — Facility unlock
+// ============================================================================
+
+void URougeliteRunSubsystem::UnlockTradeStation()
+{
+	if (!CurrentSaveGame)
+	{
+		return;
+	}
+	CurrentSaveGame->bHasUnlockedTradeStation = true;
+	SaveGame();
+}
+
+void URougeliteRunSubsystem::UnlockExchange()
+{
+	if (!CurrentSaveGame)
+	{
+		return;
+	}
+	CurrentSaveGame->bHasUnlockedExchange = true;
+	SaveGame();
 }
 
 

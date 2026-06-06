@@ -52,10 +52,40 @@ void UIcon::SetResourceType(EResourceType Type)
 	Update();
 }
 
+void UIcon::SetNone()
+{
+	bHasLinkedResourceType = false;
+	LinkedResourceType = EResourceType::Wood; 
+	if (IconImage)
+	{
+		IconImage->SetBrushFromTexture(nullptr);
+	}
+	if (NameText)
+	{
+		NameText->SetText(FText::GetEmpty());
+	}
+	if(IconButton)
+	{
+		IconButton->SetIsEnabled(false);
+	}
+}
+
 void UIcon::Update()
 {
 	if (!bHasLinkedResourceType)
 	{
+		if (IconImage)
+		{
+			IconImage->SetBrushFromTexture(nullptr);
+		}
+		if (NameText)
+		{
+			NameText->SetText(FText::GetEmpty());
+		}
+		if(IconButton)
+		{
+			IconButton->SetIsEnabled(false);
+		}
 		return;
 	}
 
@@ -78,9 +108,12 @@ void UIcon::Update()
 			IconImage->SetBrushFromSoftTexture(Row->IconTexture);
 		}
 		if (NameText)
+		{			
+			NameText->SetText(Row->DisplayName);
+		}
+		if(IconButton)
 		{
-			const FText DisplayName = EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(LinkedResourceType));
-			NameText->SetText(DisplayName);
+			IconButton->SetIsEnabled(true);
 		}
 	}
 	else
