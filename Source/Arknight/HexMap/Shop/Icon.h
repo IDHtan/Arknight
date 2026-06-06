@@ -13,6 +13,8 @@ class UTextBlock;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnIconClickedSignature, EResourceType, ResourceType);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnIconButtonClickedSignature);
+// Non-dynamic variant — supports AddLambda / AddRaw / AddSP (not Blueprint-visible)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnIconClickedNativeSignature, EResourceType);
 
 /**
  * Shared icon widget used by both Shop and Backpack systems.
@@ -40,6 +42,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Icon|Events")
 	FOnIconButtonClickedSignature OnIconButtonClicked;
+
+	// Non-dynamic variant for C++ lambda bindings (AddLambda / AddRaw / AddSP)
+	FOnIconClickedNativeSignature OnIconClickedNative;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* IconButton;

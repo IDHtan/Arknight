@@ -129,7 +129,7 @@ void UExchangePanel::PopulateExchangeIcons()
 		GoodsIcon->SetExchangeItem(&Item, Stock);
 
 		const int32 Index = i;
-		GoodsIcon->OnIconClicked.AddLambda([this, Index](EResourceType Type)
+		GoodsIcon->OnIconClickedNative.AddLambda([this, Index](EResourceType Type)
 		{
 			OnResourceSelected(Index);
 		});

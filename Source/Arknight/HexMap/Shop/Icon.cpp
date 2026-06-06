@@ -109,7 +109,7 @@ void UIcon::Update()
 		}
 		if (NameText)
 		{			
-			NameText->SetText(Row->DisplayName);
+			NameText->SetText(FText::FromName(Row->DisplayName));
 		}
 		if(IconButton)
 		{
@@ -131,5 +131,6 @@ void UIcon::HandleIconButtonClicked()
 	if (bHasLinkedResourceType)
 	{
 		OnIconClicked.Broadcast(LinkedResourceType);
+		OnIconClickedNative.Broadcast(LinkedResourceType);
 	}
 }
