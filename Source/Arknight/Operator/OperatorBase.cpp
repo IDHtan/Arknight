@@ -3,7 +3,10 @@
 
 #include "OperatorBase.h"
 #include "BulletBase.h"
-#include "Components/BillboardComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Components/Image.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/BoxComponent.h"
 #include "../BattleMap/Cell/DeployableCell.h"
 #include "../HexMap/Controller/HexMapSubsystem.h"
 #include "../HexMap/Event/RunModifierBase.h"
@@ -11,11 +14,19 @@
 AOperatorBase::AOperatorBase()
 {
  	
-	PrimaryActorTick.bCanEverTick = false;
-
-	SpriteComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("SpriteComponent"));
-	RootComponent = SpriteComponent;
+	SpriteWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("SpriteWidget"));
+	SpriteWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	RootComponent = SpriteWidget;
 	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
+
+	// Invisible click target at cell surface — no VisualPlacementOffsetZ
+	ClickCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("ClickCollider"));
+	ClickCollider->SetupAttachment(RootComponent);
+	ClickCollider->SetHiddenInGame(true);
+	ClickCollider->SetVisibility(false);
+	ClickCollider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ClickCollider->SetCollisionResponseToAllChannels(ECR_Ignore);
+	ClickCollider->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 }
 
 void AOperatorBase::OnDeployed(FIntVector2 Location, EDeploymentDirection Direction, int32 InitialLevel, ADeployableCell* DeployCell)
@@ -36,12 +47,29 @@ void AOperatorBase::OnDeployed(FIntVector2 Location, EDeploymentDirection Direct
 		const float OperatorBottomZ = OperatorBoundsOrigin.Z - OperatorBoundsExtent.Z;
 		const float PlacementOffsetZ = CellTopZ - OperatorBottomZ + VisualPlacementOffsetZ;
 		AddActorWorldOffset(FVector(0.0f, 0.0f, PlacementOffsetZ));
+
+			// ClickCollider stays at cell surface (no VisualPlacementOffsetZ)
+			if (ClickCollider)
+			{
+				ClickCollider->SetRelativeLocation(FVector(0, 0, -PlacementOffsetZ));
+			}
 	}
 
-	// Set the 2D sprite to the operator's portrait
-	if (SpriteComponent && AvatarImage)
+	if (SpriteWidget && SpriteWidgetClass && AvatarImage)
 	{
-		SpriteComponent->SetSprite(AvatarImage);
+		SpriteWidget->SetWidgetClass(SpriteWidgetClass);
+		UUserWidget* Widget = SpriteWidget->GetWidget();
+		if (Widget)
+		{
+			if (UImage* Portrait = Cast<UImage>(Widget->GetWidgetFromName(TEXT("PortraitImage"))))
+			{
+				Portrait->SetBrushFromTexture(AvatarImage);
+			}
+
+			// Mirror horizontally when facing Left or Down
+			const float FlipX = (Direction == EDeploymentDirection::Left || Direction == EDeploymentDirection::Down) ? -1.0f : 1.0f;
+			SpriteWidget->SetWorldScale3D(FVector(FlipX, 1.0f, 1.0f));
+		}
 	}
 
 	if (TargetingComp)
