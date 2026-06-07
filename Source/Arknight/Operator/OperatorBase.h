@@ -24,9 +24,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FText OperatorDescription;
 
-	// 2D sprite always facing camera — replace StaticMesh with a flat image
+	// World→screen projected portrait. Widget instance set in OnDeployed.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UBillboardComponent* SpriteComponent;
+	class UWidgetComponent* SpriteWidget;
+
+	// UMG class containing a UImage named "PortraitImage". Set in BP.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UUserWidget> SpriteWidgetClass;
+
+	// Invisible collision box for click detection — placed at cell surface, no VisualOffsetZ
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UBoxComponent* ClickCollider;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
 	float VisualPlacementOffsetZ = 0.0f;
