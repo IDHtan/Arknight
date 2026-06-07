@@ -17,11 +17,11 @@ class ARKNIGHT_API UHexEventLogic_Wood_Wasteland : public UHexEventLogicBase
 		case 0: MapSubsystemRef->AddHexMapResource(EResourceType::Wood, 5); break;
 		case 1: {
 			FName ID = MapSubsystemRef->GetRandomBattleLevelID(EHexNodeType::Combat_Normal);
-			if (!ID.IsNone()) { MapSubsystemRef->PrepareForBattle(ID, EHexNodeType::Combat_Normal); UGameplayStatics::OpenLevel(this, TEXT("Lvl_BattleMap")); bTriggeredCombat = true; }
+			if (!ID.IsNone()) { MapSubsystemRef->PrepareForBattle(ID, EHexNodeType::Combat_Normal); UGameplayStatics::OpenLevel(this, TEXT("/Game/Maps/Lvl_BattleMap")); bTriggeredCombat = true; }
 			break; }
 		case 2: {
 			FName ID = MapSubsystemRef->GetRandomBattleLevelID(EHexNodeType::Combat_Emergency);
-			if (!ID.IsNone()) { MapSubsystemRef->PrepareForBattle(ID, EHexNodeType::Combat_Emergency); UGameplayStatics::OpenLevel(this, TEXT("Lvl_BattleMap")); bTriggeredCombat = true; }
+			if (!ID.IsNone()) { MapSubsystemRef->PrepareForBattle(ID, EHexNodeType::Combat_Emergency); UGameplayStatics::OpenLevel(this, TEXT("/Game/Maps/Lvl_BattleMap")); bTriggeredCombat = true; }
 			break; }
 		}
 	}

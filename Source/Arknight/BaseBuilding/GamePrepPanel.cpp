@@ -166,5 +166,5 @@ void UGamePrepPanel::OnConfirmClicked()
 	HexMapSubsystem->EnterRegion(StartingRegion);
 
 	// Open HexMap level
-	UGameplayStatics::OpenLevel(this, TEXT("Lvl_HexMap"));
+	UGameplayStatics::OpenLevel(this, TEXT("/Game/Maps/Lvl_HexMap"));
 }

@@ -22,7 +22,7 @@ class ARKNIGHT_API UHexEventLogic_Rock_Cooking : public UHexEventLogicBase
 			break; }
 		case 2: {
 			FName ID = MapSubsystemRef->GetRandomBattleLevelID(EHexNodeType::Combat_Normal);
-			if (!ID.IsNone()) { MapSubsystemRef->PrepareForBattle(ID, EHexNodeType::Combat_Normal); UGameplayStatics::OpenLevel(this, TEXT("Lvl_BattleMap")); bTriggeredCombat = true; }
+			if (!ID.IsNone()) { MapSubsystemRef->PrepareForBattle(ID, EHexNodeType::Combat_Normal); UGameplayStatics::OpenLevel(this, TEXT("/Game/Maps/Lvl_BattleMap")); bTriggeredCombat = true; }
 			break; }
 		}
 	}

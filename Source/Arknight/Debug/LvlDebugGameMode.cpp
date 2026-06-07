@@ -20,7 +20,7 @@ void ALvlDebugGameMode::BeginPlay()
 		if (UHexMapSubsystem* Subsystem = GI->GetSubsystem<UHexMapSubsystem>())
 		{
 			Subsystem->PrepareForBattle(LevelID, EHexNodeType::Combat_Normal);
-			UGameplayStatics::OpenLevel(this, TEXT("Lvl_BattleMap"));
+			UGameplayStatics::OpenLevel(this, TEXT("/Game/Maps/Lvl_BattleMap"));
 		}
 	}
 

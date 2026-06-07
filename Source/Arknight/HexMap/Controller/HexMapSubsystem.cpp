@@ -660,7 +660,7 @@ void UHexMapSubsystem::ConcludeGame()
 
 	if (UWorld* World = GetWorld())
 	{
-		UGameplayStatics::OpenLevel(World, TEXT("Lvl_MainMenu"));
+		UGameplayStatics::OpenLevel(World, TEXT("/Game/Maps/Lvl_MainMenu"));
 	}
 	else
 	{

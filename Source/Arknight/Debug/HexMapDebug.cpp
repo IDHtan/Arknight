@@ -22,7 +22,7 @@ void AHexMapDebug::BeginPlay()
 		{
 			HexMapSubsystem->InitializeNewRun(FMath::Rand());
 			HexMapSubsystem->EnterRegion(EHexRegionType::Wood);
-			UGameplayStatics::OpenLevel(this, FName("Lvl_HexMap"));
+			UGameplayStatics::OpenLevel(this, FName("/Game/Maps/Lvl_HexMap"));
 		}
 	}
 
