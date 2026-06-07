@@ -36,6 +36,10 @@ void UGoodsIcon::Update()
 		return;
 	}
 
+	// Set type from row so Super::Update loads the correct icon
+	bHasLinkedResourceType = true;
+	LinkedResourceType = ExchangeItemRow->ResourceType;
+
 	Super::Update();
 
 	// --- PriceText ---

@@ -125,7 +125,6 @@ void UExchangePanel::PopulateExchangeIcons()
 			continue;
 		}
 
-		GoodsIcon->SetResourceType(Item.ResourceType);
 		GoodsIcon->SetExchangeItem(&Item, Stock);
 
 		const int32 Index = i;

@@ -195,7 +195,7 @@ void AOperatorBase::ExecuteAttack()
 		case EOperatorAttackType::Ranged:
 			if(BulletClass)
 			{
-				ABulletBase* Bullet = GetWorld()->SpawnActor<ABulletBase>(BulletClass, GetActorLocation()-FVector(0, 0, VisualPlacementOffsetZ/2), FRotator::ZeroRotator);
+				ABulletBase* Bullet = GetWorld()->SpawnActor<ABulletBase>(BulletClass, GetActorLocation(), FRotator::ZeroRotator);
 				if (Bullet)
 				{
 					Bullet->InitializeBullet(

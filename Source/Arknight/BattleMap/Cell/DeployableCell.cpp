@@ -10,7 +10,6 @@ void ADeployableCell::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 缓存原始材质并创建动态材质实例（不在构造里做，因为蓝图可能还没设置材质）
 	if (CellMeshComponent)
 	{
 		UMaterialInterface* BaseMaterial = CellMeshComponent->GetMaterial(0);
@@ -35,16 +34,14 @@ void ADeployableCell::SetOccupyingOperator(AOperatorBase* Operator)
 		bIsOccupied = false;
 	}
 
-	//***
-	//*metion*: this need to reset back after viusal effect is implemented
-	//***
-	/*ABattlePlayerController* BattlePC = Cast<ABattlePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+
+	ABattlePlayerController* BattlePC = Cast<ABattlePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (!BattlePC)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("DeployableCell set up failed: PlayerController not found"));
 		return;
 	}
-	BattlePC->OnOperatorCardClicked.AddDynamic(this, &ADeployableCell::OnOperatorCardClicked);*/
+	BattlePC->OnOperatorCardClicked.AddDynamic(this, &ADeployableCell::OnOperatorCardClicked);
 }
 
 bool ADeployableCell::CanDeploy(EOperatorDeployType DeployType)
@@ -98,8 +95,8 @@ void ADeployableCell::OnOperatorCardClicked(FName OperatorName)
 		return;
 	}
 
-	if((OperatorData->DeployType==EOperatorDeployType::Melee && LogicalCellType != ECellType::DeployableGround) ||
-		(OperatorData->DeployType==EOperatorDeployType::Ranged && LogicalCellType != ECellType::DeployableHighGround))
+	if((OperatorData->DeployType==EOperatorDeployType::Melee && LogicalCellType == ECellType::DeployableGround) ||
+		(OperatorData->DeployType==EOperatorDeployType::Ranged && LogicalCellType == ECellType::DeployableHighGround))
 	{
 		EnableVisualEffect();
 	}

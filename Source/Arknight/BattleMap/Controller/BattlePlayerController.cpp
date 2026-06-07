@@ -152,6 +152,7 @@ void ABattlePlayerController::OnClickStarted()
 			HUDWidgetInstance->HideAllPanels();
 		}
 		OperatorCardChanged(SelectedOperatorCardName);
+		return;
 	}
 
 	SelectedOperator = Cast<AOperatorBase>(HitResult.GetActor());
