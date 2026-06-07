@@ -24,7 +24,7 @@ ABattleCameraPawn::ABattleCameraPawn()
 
 void ABattleCameraPawn::FrameGridToScreen(int32 GridX, int32 GridY, float CellSize)
 {
-	SetActorLocation(FVector(CellSize * (GridX - 1) / 2, CellSize * (GridY) / 2, 0));
+	SetActorLocation(FVector(CellSize * (GridX - 1) / 2, CellSize * (GridY-1) / 2, 0));
 	RootComp->SetWorldRotation(FRotator(0.f, 0.f, 0.f));
 	SpringArm->SetRelativeRotation(FRotator(-60.f, 90.f, 0.f));
 
