@@ -30,25 +30,25 @@ void URougeliteRunSubsystem::LoadGame()
 		if (!CurrentSaveGame)
 		{
 			CurrentSaveGame = Cast<URougeliteSaveGame>(UGameplayStatics::CreateSaveGameObject(URougeliteSaveGame::StaticClass()));
+			CurrentSaveGame->GlobalResources.FindOrAdd(EResourceType::Food)=20;
 		}
-		GlobalResource.Empty();
-		GlobalResource = CurrentSaveGame->GlobalResources;
 		UE_LOG(LogTemp, Warning, TEXT("load success"));
 	}
 	else
 	{
 		CurrentSaveGame = Cast<URougeliteSaveGame>(UGameplayStatics::CreateSaveGameObject(URougeliteSaveGame::StaticClass()));
 		UE_LOG(LogTemp, Warning, TEXT("no save found, create new"));
+		CurrentSaveGame->GlobalResources.FindOrAdd(EResourceType::Food)=20;
 	}
 
-	// Ensure starting Food is at least 20
-	if (CurrentSaveGame)
+
+	int32& FoodRef = CurrentSaveGame->GlobalResources.FindOrAdd(EResourceType::Food);
+	if(FoodRef <= 0)
 	{
-		int32& FoodRef = CurrentSaveGame->GlobalResources.FindOrAdd(EResourceType::Food);
-		FoodRef = FMath::Max(FoodRef, 20);
+		FoodRef = 20;
+		GlobalResource.FindOrAdd(EResourceType::Food) = 20;
 	}
-
-	GlobalResource = CurrentSaveGame ? CurrentSaveGame->GlobalResources : TMap<EResourceType, int32>();
+		GlobalResource = CurrentSaveGame ? CurrentSaveGame->GlobalResources : TMap<EResourceType, int32>();
 
 	InitExchangeStock();
 	CheckOperators();

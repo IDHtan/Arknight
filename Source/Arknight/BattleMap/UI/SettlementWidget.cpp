@@ -86,7 +86,7 @@ void USettlementWidget::OnConfirmClicked()
 		if (HexMap->GetCurrentAP() > 3)
 		{
 			HexMap->ChangeCurrentAP(-3);
-			UGameplayStatics::OpenLevel(this, TEXT("Lvl_HexMap"));
+			UGameplayStatics::OpenLevel(this, TEXT("/Game/Maps/Lvl_HexMap"));
 		}
 		else
 		{
@@ -96,6 +96,6 @@ void USettlementWidget::OnConfirmClicked()
 	}
 	else
 	{
-		UGameplayStatics::OpenLevel(this, TEXT("Lvl_HexMap"));
+		UGameplayStatics::OpenLevel(this, TEXT("/Game/Maps/Lvl_HexMap"));
 	}
 }

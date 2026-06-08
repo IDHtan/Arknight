@@ -20,7 +20,7 @@ class ARKNIGHT_API UHexEventLogic_Grain_Mine : public UHexEventLogicBase
 			break;
 		case 2: {
 			FName ID = MapSubsystemRef->GetRandomBattleLevelID(EHexNodeType::Combat_Emergency);
-			if (!ID.IsNone()) { MapSubsystemRef->PrepareForBattle(ID, EHexNodeType::Combat_Emergency); UGameplayStatics::OpenLevel(this, TEXT("Lvl_BattleMap")); bTriggeredCombat = true; }
+			if (!ID.IsNone()) { MapSubsystemRef->PrepareForBattle(ID, EHexNodeType::Combat_Emergency); UGameplayStatics::OpenLevel(this, TEXT("/Game/Maps/Lvl_BattleMap")); bTriggeredCombat = true; }
 			break; }
 		}
 	}
